@@ -1,7 +1,10 @@
 package com.company;
 
+import com.company.ui.EmployeeUI;
+
 public class Main {
     public static void main(String[] args) {
-        System.out.println("Hello world!");
+        // EmployeeUI 초기화 및 실행
+        new EmployeeUI();
     }
 }
