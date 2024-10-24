@@ -75,13 +75,25 @@ public class EmployeeUI extends JFrame {
 
         add(checkBoxPanel, BorderLayout.WEST);
 
-        // 하단에 초기화, 삭제, 추가 버튼 패널 추가
+        // 하단에 초기화, 직원 추가, 삭제 버튼 패널 추가
         JPanel buttonPanel = new JPanel();
-        buttonPanel.setLayout(new FlowLayout());  // 버튼을 한 줄로 배치
+        buttonPanel.setLayout(new BorderLayout());  // 버튼을 양쪽 및 가운데로 배치
         resetButton = new JButton("초기화");
+        addButton = new JButton("새 직원 추가");
         deleteButton = new JButton("선택된 직원 삭제");
-        buttonPanel.add(resetButton);
-        buttonPanel.add(deleteButton);
+
+        JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));  // 왼쪽 정렬
+        leftPanel.add(resetButton);
+        buttonPanel.add(leftPanel, BorderLayout.WEST);
+
+        JPanel centerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));  // 가운데 정렬
+        centerPanel.add(addButton);
+        buttonPanel.add(centerPanel, BorderLayout.CENTER);
+
+        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));  // 오른쪽 정렬
+        rightPanel.add(deleteButton);
+        buttonPanel.add(rightPanel, BorderLayout.EAST);
+
         add(buttonPanel, BorderLayout.SOUTH);
 
         // 초기화 버튼 이벤트
@@ -92,12 +104,28 @@ public class EmployeeUI extends JFrame {
             int selectedRow = employeeTable.getSelectedRow();
             if (selectedRow >= 0) {
                 String ssn = tableModel.getValueAt(selectedRow, 3).toString();
-                EmployeeSearch.deleteEmployee(ssn);
-                loadEmployeeData(); // 데이터 재로드
+
+                // 확인 대화상자 표시
+                int confirmation = JOptionPane.showConfirmDialog(
+                        this,
+                        "선택한 직원을 삭제하시겠습니까?",
+                        "직원 삭제 확인",
+                        JOptionPane.YES_NO_OPTION
+                );
+
+                // '예'를 선택한 경우에만 삭제 진행
+                if (confirmation == JOptionPane.YES_OPTION) {
+                    EmployeeSearch.deleteEmployee(ssn);
+                    loadEmployeeData(); // 데이터 재로드
+                }
             } else {
                 JOptionPane.showMessageDialog(null, "삭제할 직원을 선택해주세요.");
             }
         });
+
+
+        // 직원 추가 버튼 이벤트 - 새 창 띄우기
+        addButton.addActionListener(e -> openAddEmployeeDialog());
 
         // 검색 버튼 클릭 이벤트
         searchButton.addActionListener(e -> {
@@ -152,4 +180,121 @@ public class EmployeeUI extends JFrame {
             tableModel.addRow(rowData.toArray());
         }
     }
+
+    // 직원 추가 창을 여는 메서드
+    private void openAddEmployeeDialog() {
+        JDialog dialog = new JDialog(this, "새 직원 추가", true);
+        dialog.setSize(400, 600);
+        dialog.setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);  // 패딩 추가
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        // 왼쪽 라벨들
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        dialog.add(new JLabel("First Name:"), gbc);
+
+        gbc.gridy++;
+        dialog.add(new JLabel("Middle Init:"), gbc);
+
+        gbc.gridy++;
+        dialog.add(new JLabel("Last Name:"), gbc);
+
+        gbc.gridy++;
+        dialog.add(new JLabel("SSN:"), gbc);
+
+        gbc.gridy++;
+        dialog.add(new JLabel("Birth Date:"), gbc);
+
+        gbc.gridy++;
+        dialog.add(new JLabel("Address:"), gbc);
+
+        gbc.gridy++;
+        dialog.add(new JLabel("Sex:"), gbc);
+
+        gbc.gridy++;
+        dialog.add(new JLabel("Salary:"), gbc);
+
+        gbc.gridy++;
+        dialog.add(new JLabel("Supervisor SSN:"), gbc);
+
+        gbc.gridy++;
+        dialog.add(new JLabel("Dept No:"), gbc);
+
+        // 오른쪽 입력 필드들
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        JTextField fnameField = new JTextField(15);
+        dialog.add(fnameField, gbc);
+
+        gbc.gridy++;
+        JTextField minitField = new JTextField(15);
+        dialog.add(minitField, gbc);
+
+        gbc.gridy++;
+        JTextField lnameField = new JTextField(15);
+        dialog.add(lnameField, gbc);
+
+        gbc.gridy++;
+        JTextField ssnField = new JTextField(15);
+        dialog.add(ssnField, gbc);
+
+        gbc.gridy++;
+        JTextField bdateField = new JTextField(15);
+        dialog.add(bdateField, gbc);
+
+        gbc.gridy++;
+        JTextField addressField = new JTextField(15);
+        dialog.add(addressField, gbc);
+
+        gbc.gridy++;
+        JTextField sexField = new JTextField(15);
+        dialog.add(sexField, gbc);
+
+        gbc.gridy++;
+        JTextField salaryField = new JTextField(15);
+        dialog.add(salaryField, gbc);
+
+        gbc.gridy++;
+        JTextField superSsnField = new JTextField(15);
+        dialog.add(superSsnField, gbc);
+
+        gbc.gridy++;
+        JTextField dnoField = new JTextField(15);
+        dialog.add(dnoField, gbc);
+
+        // 추가 버튼을 아래 중앙에 배치
+        gbc.gridx = 0;
+        gbc.gridy++;
+        gbc.gridwidth = 2;  // 버튼이 전체 너비를 차지하게 설정
+        gbc.anchor = GridBagConstraints.CENTER;  // 중앙 정렬
+        JButton addEmployeeButton = new JButton("추가");
+        dialog.add(addEmployeeButton, gbc);
+
+        // 버튼 클릭 이벤트 처리
+        addEmployeeButton.addActionListener(e -> {
+            String fname = fnameField.getText();
+            String minit = minitField.getText();
+            String lname = lnameField.getText();
+            String ssn = ssnField.getText();
+            String bdate = bdateField.getText();
+            String address = addressField.getText();
+            String sex = sexField.getText();
+            String salary = salaryField.getText();
+            String superSsn = superSsnField.getText();
+            String dno = dnoField.getText();
+
+            // Employee 객체 생성 및 데이터베이스에 추가
+            Employee newEmployee = new Employee(fname, minit, lname, ssn, bdate, address, sex, Double.parseDouble(salary), superSsn, Integer.parseInt(dno));
+            EmployeeSearch.addEmployee(newEmployee);
+
+            // 추가된 직원 정보를 메인 테이블에 반영
+            loadEmployeeData();
+            dialog.dispose();  // 창 닫기
+        });
+
+        dialog.setVisible(true);
+    }
+
 }
