@@ -90,6 +90,78 @@ public class EmployeeSearch {
         }
     }
 
+
+    // 조건에 맞는 직원 삭제
+    public static int deleteEmployeeByConditions(String conditionsInput) {
+        if (conditionsInput != null && !conditionsInput.trim().isEmpty()) {
+            String[] conditionPairs = conditionsInput.split(",");
+
+            StringBuilder queryBuilder = new StringBuilder("DELETE FROM EMPLOYEE WHERE ");
+            List<String> values = new ArrayList<>();
+
+            for (int i = 0; i < conditionPairs.length; i++) {
+                String condition = conditionPairs[i].trim();
+                String operator = null;
+
+                // 비교 연산자 찾기
+                if (condition.contains(">=")) {
+                    operator = ">=";
+                } else if (condition.contains("<=")) {
+                    operator = "<=";
+                } else if (condition.contains(">")) {
+                    operator = ">";
+                } else if (condition.contains("<")) {
+                    operator = "<";
+                } else if (condition.contains("!=")) {
+                    operator = "!=";
+                } else if (condition.contains("=")) {
+                    operator = "=";
+                }
+
+                // 연산자가 없는 경우 오류 처리
+                if (operator == null) {
+                    return -1; // 잘못된 입력 형식
+                }
+
+                // 연산자를 기준으로 필드와 값 분리
+                String[] fieldValue = condition.split(operator);
+                if (fieldValue.length == 2) {
+                    String field = fieldValue[0].trim();
+                    String value = fieldValue[1].trim();
+
+                    values.add(value);
+
+                    queryBuilder.append(field).append(" ").append(operator).append(" ?");
+                    if (i < conditionPairs.length - 1) {
+                        queryBuilder.append(" AND ");
+                    }
+                } else {
+                    return -1; // 잘못된 입력 형식
+                }
+            }
+
+            String query = queryBuilder.toString();
+
+            try (Connection connection = DatabaseConnection.getConnection();
+                 PreparedStatement pstmt = connection.prepareStatement(query)) {
+
+                for (int i = 0; i < values.size(); i++) {
+                    pstmt.setString(i + 1, values.get(i));
+                }
+
+                int affectedRows = pstmt.executeUpdate();
+                return affectedRows;
+
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+                return -1;
+            }
+        } else {
+            return -1;
+        }
+    }
+
+
     // 직원 추가
     public static void addEmployee(Employee employee) {
         String query = "INSERT INTO EMPLOYEE (Fname, Minit, Lname, Ssn, Bdate, Address, Sex, Salary, Super_ssn, Dno) " +
