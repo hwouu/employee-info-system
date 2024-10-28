@@ -272,6 +272,18 @@ public class EmployeeUI extends JFrame {
         JButton addEmployeeButton = new JButton("추가");
         dialog.add(addEmployeeButton, gbc);
 
+        // 입력 필드에 예시값 설정
+        fnameField.setText("Yang");
+        minitField.setText("J");
+        lnameField.setText("Hoon");
+        ssnField.setText("123456789");
+        bdateField.setText("2003-05-17");
+        addressField.setText("서울");
+        sexField.setText("M");
+        salaryField.setText("100.0");
+        superSsnField.setText("");
+        dnoField.setText("1");
+
         // 버튼 클릭 이벤트 처리
         addEmployeeButton.addActionListener(e -> {
             String fname = fnameField.getText();
@@ -287,11 +299,16 @@ public class EmployeeUI extends JFrame {
 
             // Employee 객체 생성 및 데이터베이스에 추가
             Employee newEmployee = new Employee(fname, minit, lname, ssn, bdate, address, sex, Double.parseDouble(salary), superSsn, Integer.parseInt(dno));
-            EmployeeSearch.addEmployee(newEmployee);
+            boolean addResult = EmployeeSearch.addEmployee(newEmployee);
 
             // 추가된 직원 정보를 메인 테이블에 반영
             loadEmployeeData();
-            dialog.dispose();  // 창 닫기
+
+            // 추가 성공 시 창 닫기
+            if (addResult) {
+                dialog.dispose();
+            }
+            System.out.println("Employee added: " + addResult);
         });
 
         dialog.setVisible(true);
