@@ -14,7 +14,7 @@ public class EmployeeUI extends JFrame {
     private DefaultTableModel tableModel;
     private JTextField searchField;
     private JComboBox<String> searchColumnComboBox;
-    private JButton searchButton, resetButton, deleteButton, addButton;
+    private JButton searchButton, resetButton, deleteButton, conditionDeleteButton, addButton;
 
     // 체크박스들
     private JCheckBox fnameCheckBox, minitCheckBox, lnameCheckBox, ssnCheckBox, bdateCheckBox,
@@ -81,6 +81,7 @@ public class EmployeeUI extends JFrame {
         resetButton = new JButton("초기화");
         addButton = new JButton("새 직원 추가");
         deleteButton = new JButton("선택된 직원 삭제");
+        conditionDeleteButton = new JButton("조건에 맞는 직원 삭제");  // 조건 삭제 버튼 추가
 
         JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));  // 왼쪽 정렬
         leftPanel.add(resetButton);
@@ -92,6 +93,7 @@ public class EmployeeUI extends JFrame {
 
         JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));  // 오른쪽 정렬
         rightPanel.add(deleteButton);
+        rightPanel.add(conditionDeleteButton);  // 조건 삭제 버튼 추가
         buttonPanel.add(rightPanel, BorderLayout.EAST);
 
         add(buttonPanel, BorderLayout.SOUTH);
@@ -121,6 +123,42 @@ public class EmployeeUI extends JFrame {
             } else {
                 JOptionPane.showMessageDialog(null, "삭제할 직원을 선택해주세요.");
             }
+        });
+
+        // 조건에 맞는 직원 삭제 버튼
+        conditionDeleteButton.addActionListener(e -> {
+            String conditionsInput = JOptionPane.showInputDialog(this,
+                    "삭제 조건을 입력하세요 (예: SSN=123456789, Salary>50000):");
+
+            String employeeData = EmployeeSearch.getEmployeeDataByConditions(conditionsInput);
+
+            if (employeeData != null && !employeeData.isEmpty()) {
+                // JTextArea와 JScrollPane 생성
+                JTextArea textArea = new JTextArea(15, 30); // 15줄, 30열 크기
+                textArea.setText("삭제할 직원 정보:\n" + employeeData);
+                textArea.setLineWrap(true);
+                textArea.setWrapStyleWord(true);
+                textArea.setEditable(false); // 읽기 전용으로 설정
+                JScrollPane scrollPane1 = new JScrollPane(textArea);
+
+                int confirm = JOptionPane.showConfirmDialog(this, scrollPane1, "삭제 확인", JOptionPane.YES_NO_OPTION);
+
+                if (confirm == JOptionPane.YES_OPTION) {
+                    int affectedRows = EmployeeSearch.deleteEmployeeByConditions(conditionsInput);
+
+                    if (affectedRows > 0) {
+                        JOptionPane.showMessageDialog(this, "조건에 맞는 직원이 성공적으로 삭제되었습니다.");
+                    } else {
+                        JOptionPane.showMessageDialog(this, "조건에 맞는 직원을 찾을 수 없습니다.");
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(this, "삭제 작업이 취소되었습니다.");
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "조건에 맞는 직원을 찾을 수 없습니다.");
+            }
+
+            loadEmployeeData(); // 데이터 재로드
         });
 
 

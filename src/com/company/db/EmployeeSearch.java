@@ -73,6 +73,146 @@ public class EmployeeSearch {
         return employees;
     }
 
+    // 데이터를 조회하여 조건에 맞는 직원 정보를 반환하는 함수
+    public static String getEmployeeDataByConditions(String conditionsInput) {
+        if (conditionsInput != null && !conditionsInput.trim().isEmpty()) {
+            String[] conditionPairs = conditionsInput.split(",");
+            StringBuilder selectQueryBuilder = new StringBuilder("SELECT * FROM EMPLOYEE WHERE ");
+            List<String> values = new ArrayList<>();
+
+            for (int i = 0; i < conditionPairs.length; i++) {
+                String condition = conditionPairs[i].trim();
+                String operator = null;
+
+                if (condition.contains(">=")) {
+                    operator = ">=";
+                } else if (condition.contains("<=")) {
+                    operator = "<=";
+                } else if (condition.contains(">")) {
+                    operator = ">";
+                } else if (condition.contains("<")) {
+                    operator = "<";
+                } else if (condition.contains("!=")) {
+                    operator = "!=";
+                } else if (condition.contains("=")) {
+                    operator = "=";
+                }
+
+                if (operator == null) {
+                    return null;
+                }
+
+                String[] fieldValue = condition.split(operator);
+                if (fieldValue.length == 2) {
+                    String field = fieldValue[0].trim();
+                    String value = fieldValue[1].trim();
+
+                    values.add(value);
+
+                    selectQueryBuilder.append(field).append(" ").append(operator).append(" ?");
+                    if (i < conditionPairs.length - 1) {
+                        selectQueryBuilder.append(" AND ");
+                    }
+                } else {
+                    return null;
+                }
+            }
+
+            String selectQuery = selectQueryBuilder.toString();
+            StringBuilder employeeData = new StringBuilder();
+
+            try (Connection connection = DatabaseConnection.getConnection();
+                 PreparedStatement selectPstmt = connection.prepareStatement(selectQuery)) {
+
+                for (int i = 0; i < values.size(); i++) {
+                    selectPstmt.setString(i + 1, values.get(i));
+                }
+
+                ResultSet resultSet = selectPstmt.executeQuery();
+
+                if (resultSet.next()) {
+                    ResultSetMetaData metaData = resultSet.getMetaData();
+                    int columnCount = metaData.getColumnCount();
+
+                    do {
+                        for (int i = 1; i <= columnCount; i++) {
+                            employeeData.append(metaData.getColumnName(i)).append(": ").append(resultSet.getString(i)).append("\n");
+                        }
+                        employeeData.append("\n");
+                    } while (resultSet.next());
+
+                    return employeeData.toString();
+                }
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+        }
+        return null;
+    }
+
+    // 조건에 맞는 직원 데이터를 삭제하는 함수
+    public static int deleteEmployeeByConditions(String conditionsInput) {
+        if (conditionsInput != null && !conditionsInput.trim().isEmpty()) {
+            String[] conditionPairs = conditionsInput.split(",");
+            StringBuilder queryBuilder = new StringBuilder("DELETE FROM EMPLOYEE WHERE ");
+            List<String> values = new ArrayList<>();
+
+            for (int i = 0; i < conditionPairs.length; i++) {
+                String condition = conditionPairs[i].trim();
+                String operator = null;
+
+                if (condition.contains(">=")) {
+                    operator = ">=";
+                } else if (condition.contains("<=")) {
+                    operator = "<=";
+                } else if (condition.contains(">")) {
+                    operator = ">";
+                } else if (condition.contains("<")) {
+                    operator = "<";
+                } else if (condition.contains("!=")) {
+                    operator = "!=";
+                } else if (condition.contains("=")) {
+                    operator = "=";
+                }
+
+                if (operator == null) {
+                    return -1;
+                }
+
+                String[] fieldValue = condition.split(operator);
+                if (fieldValue.length == 2) {
+                    String field = fieldValue[0].trim();
+                    String value = fieldValue[1].trim();
+
+                    values.add(value);
+                    queryBuilder.append(field).append(" ").append(operator).append(" ?");
+                    if (i < conditionPairs.length - 1) {
+                        queryBuilder.append(" AND ");
+                    }
+                } else {
+                    return -1;
+                }
+            }
+
+            String deleteQuery = queryBuilder.toString();
+
+            try (Connection connection = DatabaseConnection.getConnection();
+                 PreparedStatement deletePstmt = connection.prepareStatement(deleteQuery)) {
+
+                for (int i = 0; i < values.size(); i++) {
+                    deletePstmt.setString(i + 1, values.get(i));
+                }
+
+                return deletePstmt.executeUpdate();
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+                return -1;
+            }
+        } else {
+            return -1;
+        }
+    }
+
     // 직원 삭제
     public static void deleteEmployee(String ssn) {
         String query = "DELETE FROM EMPLOYEE WHERE Ssn = ?";
@@ -90,6 +230,8 @@ public class EmployeeSearch {
             e.printStackTrace();
         }
     }
+
+
 
     // 직원 추가
     public static boolean addEmployee(Employee employee) {
