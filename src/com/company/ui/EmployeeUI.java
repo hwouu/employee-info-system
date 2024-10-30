@@ -6,6 +6,8 @@ import com.company.model.Employee;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,7 +16,7 @@ public class EmployeeUI extends JFrame {
     private DefaultTableModel tableModel;
     private JTextField searchField;
     private JComboBox<String> searchColumnComboBox;
-    private JButton searchButton, resetButton, deleteButton, conditionDeleteButton, addButton;
+    private JButton searchButton, resetButton, deleteButton, conditionDeleteButton, addButton, editButton;
 
     // 체크박스들
     private JCheckBox fnameCheckBox, minitCheckBox, lnameCheckBox, ssnCheckBox, bdateCheckBox,
@@ -82,6 +84,7 @@ public class EmployeeUI extends JFrame {
         addButton = new JButton("새 직원 추가");
         deleteButton = new JButton("선택된 직원 삭제");
         conditionDeleteButton = new JButton("조건에 맞는 직원 삭제");  // 조건 삭제 버튼 추가
+        editButton = new JButton("직원 수정");
 
         JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));  // 왼쪽 정렬
         leftPanel.add(resetButton);
@@ -89,6 +92,7 @@ public class EmployeeUI extends JFrame {
 
         JPanel centerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));  // 가운데 정렬
         centerPanel.add(addButton);
+        centerPanel.add(editButton);
         buttonPanel.add(centerPanel, BorderLayout.CENTER);
 
         JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));  // 오른쪽 정렬
@@ -159,6 +163,71 @@ public class EmployeeUI extends JFrame {
             }
 
             loadEmployeeData(); // 데이터 재로드
+        });
+
+        // 직원 수정 버튼 클릭 시 대화상자 표시
+        editButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // SSN 입력
+                String ssn = JOptionPane.showInputDialog(EmployeeUI.this, "수정할 직원의 SSN을 입력하세요:");
+                if (ssn == null || ssn.trim().isEmpty()) {
+                    JOptionPane.showMessageDialog(EmployeeUI.this, "SSN을 입력하지 않았습니다.", "오류", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                // 테이블에서 SSN으로 직원 찾기
+                int targetRow = -1;
+                for (int row = 0; row < tableModel.getRowCount(); row++) {
+                    if (ssn.equals(tableModel.getValueAt(row, 3))) { // 3번 컬럼이 SSN임
+                        targetRow = row;
+                        break;
+                    }
+                }
+
+                // SSN에 해당하는 직원이 없는 경우
+                if (targetRow == -1) {
+                    JOptionPane.showMessageDialog(EmployeeUI.this, "해당 SSN을 가진 직원을 찾을 수 없습니다.", "오류", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                // 수정할 항목 선택
+                String[] fields = {"Address", "Salary", "Supervisor SSN", "Department No"};
+                String selectedField = (String) JOptionPane.showInputDialog(
+                        EmployeeUI.this,
+                        "수정할 항목을 선택하세요:",
+                        "항목 선택",
+                        JOptionPane.QUESTION_MESSAGE,
+                        null,
+                        fields,
+                        fields[0]
+                );
+
+                if (selectedField != null) {
+                    // 새 값 입력
+                    String newValue = JOptionPane.showInputDialog(EmployeeUI.this, selectedField + "의 새 값을 입력하세요:");
+                    if (newValue != null && !newValue.trim().isEmpty()) {
+                        // 선택된 항목에 맞게 값을 업데이트
+                        switch (selectedField) {
+                            case "Address":
+                                tableModel.setValueAt(newValue, targetRow, 5);
+                                break;
+                            case "Salary":
+                                tableModel.setValueAt(newValue, targetRow, 7);
+                                break;
+                            case "Supervisor SSN":
+                                tableModel.setValueAt(newValue, targetRow, 8);
+                                break;
+                            case "Department No":
+                                tableModel.setValueAt(newValue, targetRow, 9);
+                                break;
+                        }
+                        JOptionPane.showMessageDialog(EmployeeUI.this, "직원 정보가 업데이트되었습니다.");
+                    } else {
+                        JOptionPane.showMessageDialog(EmployeeUI.this, "새 값을 입력하지 않았습니다.", "오류", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            }
         });
 
 
