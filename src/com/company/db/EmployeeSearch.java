@@ -4,10 +4,12 @@ import com.company.model.Employee;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import javax.swing.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Map;
 
 public class EmployeeSearch {
 
@@ -72,6 +74,29 @@ public class EmployeeSearch {
 
         return employees;
     }
+
+    // 그룹별 평균 급여
+    public static Map<String, Double> getAverageSalaryByGroup(String groupByColumn) {
+        Map<String, Double> averageSalaries = new HashMap<>();
+        String query = "SELECT " + groupByColumn + ", AVG(Salary) AS avg_salary FROM EMPLOYEE GROUP BY " + groupByColumn;
+
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(query)) {
+
+            ResultSet resultSet = pstmt.executeQuery();
+
+            while (resultSet.next()) {
+                String group = resultSet.getString(groupByColumn);
+                double averageSalary = resultSet.getDouble("avg_salary");
+                averageSalaries.put(group, averageSalary);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return averageSalaries;
+    }
+
 
     // 데이터를 조회하여 조건에 맞는 직원 정보를 반환하는 함수
     public static String getEmployeeDataByConditions(String conditionsInput) {

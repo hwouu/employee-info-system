@@ -10,13 +10,14 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class EmployeeUI extends JFrame {
     private JTable employeeTable;
     private DefaultTableModel tableModel;
     private JTextField searchField;
-    private JComboBox<String> searchColumnComboBox;
-    private JButton searchButton, resetButton, deleteButton, conditionDeleteButton, addButton, editButton;
+    private JComboBox<String> searchColumnComboBox, groupSalaryComboBox;
+    private JButton searchButton, resetButton, deleteButton, conditionDeleteButton, addButton, editButton, groupSalaryButton;
 
     // 체크박스들
     private JCheckBox fnameCheckBox, minitCheckBox, lnameCheckBox, ssnCheckBox, bdateCheckBox,
@@ -41,6 +42,10 @@ public class EmployeeUI extends JFrame {
         searchColumnComboBox = new JComboBox<>(new String[]{
                 "Fname", "Minit", "Lname", "Ssn", "Bdate", "Address", "Sex", "Salary", "Super_ssn", "Dno"
         });
+        groupSalaryComboBox = new JComboBox<>(new String[] {
+            "Sex", "Super_ssn", "Dno"
+        });
+        groupSalaryButton = new JButton("평균 급여 검색");
         searchField = new JTextField(10);
         searchButton = new JButton("검색");
         searchPanel.add(new JLabel("검색 범위"));
@@ -48,6 +53,13 @@ public class EmployeeUI extends JFrame {
         searchPanel.add(new JLabel("검색 내용"));
         searchPanel.add(searchField);
         searchPanel.add(searchButton);
+        searchPanel.add(new JLabel("그룹별 평균 급여"));
+        searchPanel.add(groupSalaryComboBox);
+        searchPanel.add(groupSalaryButton);
+
+
+
+
         add(searchPanel, BorderLayout.NORTH);
 
         // 체크박스 패널 생성 (왼쪽)
@@ -104,6 +116,8 @@ public class EmployeeUI extends JFrame {
 
         // 초기화 버튼 이벤트
         resetButton.addActionListener(e -> loadEmployeeData());
+
+        groupSalaryButton.addActionListener(e -> showAverageSalaryDialog());
 
         // 직원 삭제 버튼 이벤트
         deleteButton.addActionListener(e -> {
@@ -263,6 +277,18 @@ public class EmployeeUI extends JFrame {
 
         // UI 표시
         setVisible(true);  // JFrame을 화면에 표시
+    }
+    private void showAverageSalaryDialog() {
+        String group = groupSalaryComboBox.getSelectedItem().toString();
+        Map<String, Double> avgSalaries = EmployeeSearch.getAverageSalaryByGroup(group);
+
+        StringBuilder resultText = new StringBuilder();
+        for (Map.Entry<String, Double> entry : avgSalaries.entrySet()) {
+            resultText.append(entry.getKey()).append(" : ")
+                    .append(String.format("%.2f", entry.getValue())).append("\n");
+        }
+
+        JOptionPane.showMessageDialog(this, resultText.toString(), "그룹별 평균 급여", JOptionPane.INFORMATION_MESSAGE);
     }
 
     // 직원 정보 테이블 로드
