@@ -11,7 +11,9 @@ public class EmployeeSearch {
     // 모든 직원 정보 조회
     public static List<Employee> getAllEmployees() {
         List<Employee> employees = new ArrayList<>();
-        String query = "SELECT * FROM EMPLOYEE";
+        String query = "SELECT e.*, d.Dname AS departmentName " +
+                "FROM EMPLOYEE e " +
+                "JOIN DEPARTMENT d ON e.Dno = d.Dnumber";
 
         try (Connection connection = DatabaseConnection.getConnection();
              Statement statement = connection.createStatement();
@@ -30,6 +32,7 @@ public class EmployeeSearch {
                         resultSet.getString("Super_ssn"),
                         resultSet.getInt("Dno")
                 );
+                employee.setDepartmentName(resultSet.getString("departmentName"));  // 부서명 설정
                 employees.add(employee);
             }
         } catch (SQLException e) {
@@ -39,10 +42,14 @@ public class EmployeeSearch {
         return employees;
     }
 
+
     // 조건에 따른 직원 검색
     public static List<Employee> searchEmployees(String column, String value) {
         List<Employee> employees = new ArrayList<>();
-        String query = "SELECT * FROM EMPLOYEE WHERE " + column + " = ?";
+        String query = "SELECT e.*, d.Dname AS departmentName " +
+                "FROM EMPLOYEE e " +
+                "JOIN DEPARTMENT d ON e.Dno = d.Dnumber " +
+                "WHERE e." + column + " = ?";
 
         try (Connection connection = DatabaseConnection.getConnection();
              PreparedStatement pstmt = connection.prepareStatement(query)) {
@@ -63,6 +70,7 @@ public class EmployeeSearch {
                         resultSet.getString("Super_ssn"),
                         resultSet.getInt("Dno")
                 );
+                employee.setDepartmentName(resultSet.getString("departmentName"));  // 부서명 설정
                 employees.add(employee);
             }
         } catch (SQLException e) {
@@ -72,23 +80,6 @@ public class EmployeeSearch {
         return employees;
     }
 
-    // 직원 삭제
-    public static void deleteEmployee(String ssn) {
-        String query = "DELETE FROM EMPLOYEE WHERE Ssn = ?";
-
-        try (Connection connection = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = connection.prepareStatement(query)) {
-
-            pstmt.setString(1, ssn);
-            int affectedRows = pstmt.executeUpdate();
-
-            if (affectedRows > 0) {
-                System.out.println("Employee deleted successfully.");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
 
     // 직원 추가
     public static void addEmployee(Employee employee) {
