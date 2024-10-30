@@ -42,7 +42,6 @@ public class EmployeeSearch {
         return employees;
     }
 
-
     // 조건에 따른 직원 검색
     public static List<Employee> searchEmployees(String column, String value) {
         List<Employee> employees = new ArrayList<>();
@@ -80,6 +79,25 @@ public class EmployeeSearch {
         return employees;
     }
 
+    // 직원 삭제 메서드
+    public static void deleteEmployee(String ssn) {
+        String query = "DELETE FROM EMPLOYEE WHERE Ssn = ?";
+
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(query)) {
+
+            pstmt.setString(1, ssn);
+            int affectedRows = pstmt.executeUpdate();
+
+            if (affectedRows > 0) {
+                System.out.println("Employee deleted successfully.");
+            } else {
+                System.out.println("No employee found with SSN: " + ssn);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 
     // 직원 추가
     public static void addEmployee(Employee employee) {
