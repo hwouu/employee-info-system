@@ -165,7 +165,7 @@ public class EmployeeUI extends JFrame {
             loadEmployeeData(); // 데이터 재로드
         });
 
-        // 직원 수정 버튼 클릭 시 대화상자 표시
+        // 직원 수정 버튼 클릭 시 대화상자 표시 SSN을 기준으로 직원 정보 수정
         editButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
