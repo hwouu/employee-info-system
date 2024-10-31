@@ -16,11 +16,13 @@ public class EmployeeSearch {
     // 모든 직원 정보 조회
     public static List<Employee> getAllEmployees() {
         List<Employee> employees = new ArrayList<>();
-        String query = "SELECT * FROM EMPLOYEE";
+        String query = "SELECT e.*, d.Dname AS departmentName " +
+                "FROM EMPLOYEE e " +
+                "JOIN DEPARTMENT d ON e.Dno = d.Dnumber";
 
         try (Connection connection = DatabaseConnection.getConnection();
-                Statement statement = connection.createStatement();
-                ResultSet resultSet = statement.executeQuery(query)) {
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(query)) {
 
             while (resultSet.next()) {
                 Employee employee = new Employee(
@@ -33,7 +35,9 @@ public class EmployeeSearch {
                         resultSet.getString("Sex"),
                         resultSet.getDouble("Salary"),
                         resultSet.getString("Super_ssn"),
-                        resultSet.getInt("Dno"));
+                        resultSet.getInt("Dno")
+                );
+                employee.setDepartmentName(resultSet.getString("departmentName"));  // 부서명 설정
                 employees.add(employee);
             }
         } catch (SQLException e) {
@@ -46,10 +50,13 @@ public class EmployeeSearch {
     // 조건에 따른 직원 검색
     public static List<Employee> searchEmployees(String column, String value) {
         List<Employee> employees = new ArrayList<>();
-        String query = "SELECT * FROM EMPLOYEE WHERE " + column + " = ?";
+        String query = "SELECT e.*, d.Dname AS departmentName " +
+                "FROM EMPLOYEE e " +
+                "JOIN DEPARTMENT d ON e.Dno = d.Dnumber " +
+                "WHERE e." + column + " = ?";
 
         try (Connection connection = DatabaseConnection.getConnection();
-                PreparedStatement pstmt = connection.prepareStatement(query)) {
+             PreparedStatement pstmt = connection.prepareStatement(query)) {
 
             pstmt.setString(1, value);
             ResultSet resultSet = pstmt.executeQuery();
@@ -65,7 +72,9 @@ public class EmployeeSearch {
                         resultSet.getString("Sex"),
                         resultSet.getDouble("Salary"),
                         resultSet.getString("Super_ssn"),
-                        resultSet.getInt("Dno"));
+                        resultSet.getInt("Dno")
+                );
+                employee.setDepartmentName(resultSet.getString("departmentName"));  // 부서명 설정
                 employees.add(employee);
             }
         } catch (SQLException e) {
@@ -96,7 +105,6 @@ public class EmployeeSearch {
 
         return averageSalaries;
     }
-
 
     // 데이터를 조회하여 조건에 맞는 직원 정보를 반환하는 함수
     public static String getEmployeeDataByConditions(String conditionsInput) {
@@ -243,20 +251,20 @@ public class EmployeeSearch {
         String query = "DELETE FROM EMPLOYEE WHERE Ssn = ?";
 
         try (Connection connection = DatabaseConnection.getConnection();
-                PreparedStatement pstmt = connection.prepareStatement(query)) {
+             PreparedStatement pstmt = connection.prepareStatement(query)) {
 
             pstmt.setString(1, ssn);
             int affectedRows = pstmt.executeUpdate();
 
             if (affectedRows > 0) {
                 System.out.println("Employee deleted successfully.");
+            } else {
+                System.out.println("No employee found with SSN: " + ssn);
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
-
-
 
     // 직원 추가
     public static boolean addEmployee(Employee employee) {
@@ -365,21 +373,16 @@ public class EmployeeSearch {
         }
     }
 
-
-
     // 오류 팝업 메시지 생성
     private static void showErrorPopup(String message) {
-        // 비모달 JDialog 창 생성
         JDialog dialog = new JDialog();
         dialog.setTitle("오류");
-        dialog.setModal(true); // 모달로 설정하여 다른 창을 열 때 창을 닫을 때까지 대기
+        dialog.setModal(true);
 
-        // 오류 메시지와 확인 버튼을 포함한 패널 생성
         JPanel panel = new JPanel();
         JLabel label = new JLabel(message);
         JButton button = new JButton("확인");
 
-        // 확인 버튼 클릭 시 창 닫기
         button.addActionListener(e -> dialog.dispose());
 
         panel.add(label);
@@ -389,7 +392,6 @@ public class EmployeeSearch {
         dialog.setLocationRelativeTo(null);
         dialog.setVisible(true);
     }
-
 
     // 날짜 형식 확인 메서드
     private static boolean isValidDate(String date) {

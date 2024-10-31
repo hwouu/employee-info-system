@@ -30,8 +30,9 @@ public class EmployeeUI extends JFrame {
         setLayout(new BorderLayout());
 
         // 테이블 생성
-        String[] columnNames = {"First Name", "Middle Initial", "Last Name", "SSN", "Birth Date", "Address", "Sex", "Salary", "Supervisor SSN", "Department No."};
+        String[] columnNames = {"First Name", "Middle Initial", "Last Name", "SSN", "Birth Date", "Address", "Sex", "Salary", "Supervisor SSN", "Department Name"}; // "Department No." -> "Department Name"
         tableModel = new DefaultTableModel(columnNames, 0);
+
         employeeTable = new JTable(tableModel);
         JScrollPane scrollPane = new JScrollPane(employeeTable);
         add(scrollPane, BorderLayout.CENTER);
@@ -74,7 +75,8 @@ public class EmployeeUI extends JFrame {
         sexCheckBox = new JCheckBox("Sex", true);
         salaryCheckBox = new JCheckBox("Salary", true);
         superSsnCheckBox = new JCheckBox("Supervisor SSN", true);
-        dnoCheckBox = new JCheckBox("Dept No", true);
+        dnoCheckBox = new JCheckBox("Department Name", true);  // "Dept No" -> "Department Name"
+
 
         checkBoxPanel.add(fnameCheckBox);
         checkBoxPanel.add(minitCheckBox);
@@ -266,7 +268,7 @@ public class EmployeeUI extends JFrame {
                 if (sexCheckBox.isSelected()) rowData.add(employee.getSex());
                 if (salaryCheckBox.isSelected()) rowData.add(employee.getSalary());
                 if (superSsnCheckBox.isSelected()) rowData.add(employee.getSupervisorSsn());
-                if (dnoCheckBox.isSelected()) rowData.add(employee.getDepartmentNumber());
+                if (dnoCheckBox.isSelected()) rowData.add(employee.getDepartmentName());  // Department Name 출력
 
                 tableModel.addRow(rowData.toArray());
             }
@@ -308,7 +310,7 @@ public class EmployeeUI extends JFrame {
             if (sexCheckBox.isSelected()) rowData.add(employee.getSex());
             if (salaryCheckBox.isSelected()) rowData.add(employee.getSalary());
             if (superSsnCheckBox.isSelected()) rowData.add(employee.getSupervisorSsn());
-            if (dnoCheckBox.isSelected()) rowData.add(employee.getDepartmentNumber());
+            if (dnoCheckBox.isSelected()) rowData.add(employee.getDepartmentName());  // Department Name 출력
 
             tableModel.addRow(rowData.toArray());
         }
