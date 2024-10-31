@@ -6,15 +6,18 @@ import com.company.model.Employee;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class EmployeeUI extends JFrame {
     private JTable employeeTable;
     private DefaultTableModel tableModel;
     private JTextField searchField;
-    private JComboBox<String> searchColumnComboBox;
-    private JButton searchButton, resetButton, deleteButton, addButton;
+    private JComboBox<String> searchColumnComboBox, groupSalaryComboBox;
+    private JButton searchButton, resetButton, deleteButton, conditionDeleteButton, addButton, editButton, groupSalaryButton;
 
     // 체크박스들
     private JCheckBox fnameCheckBox, minitCheckBox, lnameCheckBox, ssnCheckBox, bdateCheckBox,
@@ -40,6 +43,10 @@ public class EmployeeUI extends JFrame {
         searchColumnComboBox = new JComboBox<>(new String[]{
                 "Fname", "Minit", "Lname", "Ssn", "Bdate", "Address", "Sex", "Salary", "Super_ssn", "Dno"
         });
+        groupSalaryComboBox = new JComboBox<>(new String[] {
+            "Sex", "Super_ssn", "Dno"
+        });
+        groupSalaryButton = new JButton("평균 급여 검색");
         searchField = new JTextField(10);
         searchButton = new JButton("검색");
         searchPanel.add(new JLabel("검색 범위"));
@@ -47,6 +54,13 @@ public class EmployeeUI extends JFrame {
         searchPanel.add(new JLabel("검색 내용"));
         searchPanel.add(searchField);
         searchPanel.add(searchButton);
+        searchPanel.add(new JLabel("그룹별 평균 급여"));
+        searchPanel.add(groupSalaryComboBox);
+        searchPanel.add(groupSalaryButton);
+
+
+
+
         add(searchPanel, BorderLayout.NORTH);
 
         // 체크박스 패널 생성 (왼쪽)
@@ -83,6 +97,8 @@ public class EmployeeUI extends JFrame {
         resetButton = new JButton("초기화");
         addButton = new JButton("새 직원 추가");
         deleteButton = new JButton("선택된 직원 삭제");
+        conditionDeleteButton = new JButton("조건에 맞는 직원 삭제");  // 조건 삭제 버튼 추가
+        editButton = new JButton("직원 수정");
 
         JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));  // 왼쪽 정렬
         leftPanel.add(resetButton);
@@ -90,16 +106,20 @@ public class EmployeeUI extends JFrame {
 
         JPanel centerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));  // 가운데 정렬
         centerPanel.add(addButton);
+        centerPanel.add(editButton);
         buttonPanel.add(centerPanel, BorderLayout.CENTER);
 
         JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));  // 오른쪽 정렬
         rightPanel.add(deleteButton);
+        rightPanel.add(conditionDeleteButton);  // 조건 삭제 버튼 추가
         buttonPanel.add(rightPanel, BorderLayout.EAST);
 
         add(buttonPanel, BorderLayout.SOUTH);
 
         // 초기화 버튼 이벤트
         resetButton.addActionListener(e -> loadEmployeeData());
+
+        groupSalaryButton.addActionListener(e -> showAverageSalaryDialog());
 
         // 직원 삭제 버튼 이벤트
         deleteButton.addActionListener(e -> {
@@ -122,6 +142,107 @@ public class EmployeeUI extends JFrame {
                 }
             } else {
                 JOptionPane.showMessageDialog(null, "삭제할 직원을 선택해주세요.");
+            }
+        });
+
+        // 조건에 맞는 직원 삭제 버튼
+        conditionDeleteButton.addActionListener(e -> {
+            String conditionsInput = JOptionPane.showInputDialog(this,
+                    "삭제 조건을 입력하세요 (예: SSN=123456789, Salary>50000):");
+
+            String employeeData = EmployeeSearch.getEmployeeDataByConditions(conditionsInput);
+
+            if (employeeData != null && !employeeData.isEmpty()) {
+                // JTextArea와 JScrollPane 생성
+                JTextArea textArea = new JTextArea(15, 30); // 15줄, 30열 크기
+                textArea.setText("삭제할 직원 정보:\n" + employeeData);
+                textArea.setLineWrap(true);
+                textArea.setWrapStyleWord(true);
+                textArea.setEditable(false); // 읽기 전용으로 설정
+                JScrollPane scrollPane1 = new JScrollPane(textArea);
+
+                int confirm = JOptionPane.showConfirmDialog(this, scrollPane1, "삭제 확인", JOptionPane.YES_NO_OPTION);
+
+                if (confirm == JOptionPane.YES_OPTION) {
+                    int affectedRows = EmployeeSearch.deleteEmployeeByConditions(conditionsInput);
+
+                    if (affectedRows > 0) {
+                        JOptionPane.showMessageDialog(this, "조건에 맞는 직원이 성공적으로 삭제되었습니다.");
+                    } else {
+                        JOptionPane.showMessageDialog(this, "조건에 맞는 직원을 찾을 수 없습니다.");
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(this, "삭제 작업이 취소되었습니다.");
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "조건에 맞는 직원을 찾을 수 없습니다.");
+            }
+
+            loadEmployeeData(); // 데이터 재로드
+        });
+
+        // 직원 수정 버튼 클릭 시 대화상자 표시 SSN을 기준으로 직원 정보 수정
+        editButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // SSN 입력
+                String ssn = JOptionPane.showInputDialog(EmployeeUI.this, "수정할 직원의 SSN을 입력하세요:");
+                if (ssn == null || ssn.trim().isEmpty()) {
+                    JOptionPane.showMessageDialog(EmployeeUI.this, "SSN을 입력하지 않았습니다.", "오류", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                // 테이블에서 SSN으로 직원 찾기
+                int targetRow = -1;
+                for (int row = 0; row < tableModel.getRowCount(); row++) {
+                    if (ssn.equals(tableModel.getValueAt(row, 3))) { // 3번 컬럼이 SSN임
+                        targetRow = row;
+                        break;
+                    }
+                }
+
+                // SSN에 해당하는 직원이 없는 경우
+                if (targetRow == -1) {
+                    JOptionPane.showMessageDialog(EmployeeUI.this, "해당 SSN을 가진 직원을 찾을 수 없습니다.", "오류", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                // 수정할 항목 선택
+                String[] fields = {"Address", "Salary", "Supervisor SSN", "Department No"};
+                String selectedField = (String) JOptionPane.showInputDialog(
+                        EmployeeUI.this,
+                        "수정할 항목을 선택하세요:",
+                        "항목 선택",
+                        JOptionPane.QUESTION_MESSAGE,
+                        null,
+                        fields,
+                        fields[0]
+                );
+
+                if (selectedField != null) {
+                    // 새 값 입력
+                    String newValue = JOptionPane.showInputDialog(EmployeeUI.this, selectedField + "의 새 값을 입력하세요:");
+                    if (newValue != null && !newValue.trim().isEmpty()) {
+                        // 선택된 항목에 맞게 값을 업데이트
+                        switch (selectedField) {
+                            case "Address":
+                                tableModel.setValueAt(newValue, targetRow, 5);
+                                break;
+                            case "Salary":
+                                tableModel.setValueAt(newValue, targetRow, 7);
+                                break;
+                            case "Supervisor SSN":
+                                tableModel.setValueAt(newValue, targetRow, 8);
+                                break;
+                            case "Department No":
+                                tableModel.setValueAt(newValue, targetRow, 9);
+                                break;
+                        }
+                        JOptionPane.showMessageDialog(EmployeeUI.this, "직원 정보가 업데이트되었습니다.");
+                    } else {
+                        JOptionPane.showMessageDialog(EmployeeUI.this, "새 값을 입력하지 않았습니다.", "오류", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
             }
         });
 
@@ -158,6 +279,18 @@ public class EmployeeUI extends JFrame {
 
         // UI 표시
         setVisible(true);  // JFrame을 화면에 표시
+    }
+    private void showAverageSalaryDialog() {
+        String group = groupSalaryComboBox.getSelectedItem().toString();
+        Map<String, Double> avgSalaries = EmployeeSearch.getAverageSalaryByGroup(group);
+
+        StringBuilder resultText = new StringBuilder();
+        for (Map.Entry<String, Double> entry : avgSalaries.entrySet()) {
+            resultText.append(entry.getKey()).append(" : ")
+                    .append(String.format("%.2f", entry.getValue())).append("\n");
+        }
+
+        JOptionPane.showMessageDialog(this, resultText.toString(), "그룹별 평균 급여", JOptionPane.INFORMATION_MESSAGE);
     }
 
     // 직원 정보 테이블 로드
@@ -274,6 +407,21 @@ public class EmployeeUI extends JFrame {
         JButton addEmployeeButton = new JButton("추가");
         dialog.add(addEmployeeButton, gbc);
 
+        /*
+        // 입력 필드에 예시값 설정
+        fnameField.setText("Yang");
+        minitField.setText("J");
+        lnameField.setText("Hoon");
+        ssnField.setText("123456789");
+        bdateField.setText("2003-05-17");
+        addressField.setText("서울");
+        sexField.setText("M");
+        salaryField.setText("100.0");
+        superSsnField.setText("");
+        dnoField.setText("1");
+
+        */
+
         // 버튼 클릭 이벤트 처리
         addEmployeeButton.addActionListener(e -> {
             String fname = fnameField.getText();
@@ -289,11 +437,16 @@ public class EmployeeUI extends JFrame {
 
             // Employee 객체 생성 및 데이터베이스에 추가
             Employee newEmployee = new Employee(fname, minit, lname, ssn, bdate, address, sex, Double.parseDouble(salary), superSsn, Integer.parseInt(dno));
-            EmployeeSearch.addEmployee(newEmployee);
+            boolean addResult = EmployeeSearch.addEmployee(newEmployee);
 
             // 추가된 직원 정보를 메인 테이블에 반영
             loadEmployeeData();
-            dialog.dispose();  // 창 닫기
+
+            // 추가 성공 시 창 닫기
+            if (addResult) {
+                dialog.dispose();
+            }
+            System.out.println("Employee added: " + addResult);
         });
 
         dialog.setVisible(true);
