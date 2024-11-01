@@ -30,11 +30,12 @@ public class EmployeeUI extends JFrame {
         setLayout(new BorderLayout());
 
         // 테이블 생성
-        String[] columnNames = {"First Name", "Middle Initial", "Last Name", "SSN", "Birth Date", "Address", "Sex", "Salary", "Supervisor SSN", "Department No."};
+        String[] columnNames = {"First Name", "Middle Initial", "Last Name", "SSN", "Birth Date", "Address", "Sex", "Salary", "Supervisor SSN", "Department Name"};
         tableModel = new DefaultTableModel(columnNames, 0);
         employeeTable = new JTable(tableModel);
         JScrollPane scrollPane = new JScrollPane(employeeTable);
         add(scrollPane, BorderLayout.CENTER);
+
 
         // 검색 필드와 버튼 패널 (상단)
         JPanel searchPanel = new JPanel();
@@ -74,7 +75,7 @@ public class EmployeeUI extends JFrame {
         sexCheckBox = new JCheckBox("Sex", true);
         salaryCheckBox = new JCheckBox("Salary", true);
         superSsnCheckBox = new JCheckBox("Supervisor SSN", true);
-        dnoCheckBox = new JCheckBox("Dept No", true);
+        dnoCheckBox = new JCheckBox("Department Name", true);
 
         checkBoxPanel.add(fnameCheckBox);
         checkBoxPanel.add(minitCheckBox);
@@ -266,7 +267,7 @@ public class EmployeeUI extends JFrame {
                 if (sexCheckBox.isSelected()) rowData.add(employee.getSex());
                 if (salaryCheckBox.isSelected()) rowData.add(employee.getSalary());
                 if (superSsnCheckBox.isSelected()) rowData.add(employee.getSupervisorSsn());
-                if (dnoCheckBox.isSelected()) rowData.add(employee.getDepartmentNumber());
+                if (dnoCheckBox.isSelected()) rowData.add(employee.getDepartmentName()); // 부서 이름 출력
 
                 tableModel.addRow(rowData.toArray());
             }
@@ -278,6 +279,8 @@ public class EmployeeUI extends JFrame {
         // UI 표시
         setVisible(true);  // JFrame을 화면에 표시
     }
+
+
     private void showAverageSalaryDialog() {
         String group = groupSalaryComboBox.getSelectedItem().toString();
         Map<String, Double> avgSalaries = EmployeeSearch.getAverageSalaryByGroup(group);
@@ -291,7 +294,6 @@ public class EmployeeUI extends JFrame {
         JOptionPane.showMessageDialog(this, resultText.toString(), "그룹별 평균 급여", JOptionPane.INFORMATION_MESSAGE);
     }
 
-    // 직원 정보 테이블 로드
     private void loadEmployeeData() {
         List<Employee> employees = EmployeeSearch.getAllEmployees();
         tableModel.setRowCount(0);  // 테이블 초기화
@@ -308,11 +310,12 @@ public class EmployeeUI extends JFrame {
             if (sexCheckBox.isSelected()) rowData.add(employee.getSex());
             if (salaryCheckBox.isSelected()) rowData.add(employee.getSalary());
             if (superSsnCheckBox.isSelected()) rowData.add(employee.getSupervisorSsn());
-            if (dnoCheckBox.isSelected()) rowData.add(employee.getDepartmentNumber());
+            if (dnoCheckBox.isSelected()) rowData.add(employee.getDepartmentName());  // 부서명 출력 확인
 
             tableModel.addRow(rowData.toArray());
         }
     }
+
 
     // 직원 추가 창을 여는 메서드
     private void openAddEmployeeDialog() {
