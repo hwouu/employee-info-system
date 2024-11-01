@@ -80,10 +80,47 @@ public class EmployeeSearch {
         return employees;
     }
 
+    // 직원 수정
+    public static int updateEmployeeInDatabase(String ssn, String field, String newValue) {
+        String query = "UPDATE employee SET " + field + " = ? WHERE ssn = ?";
+
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(query)) {
+            pstmt.setString(1, newValue);
+            pstmt.setString(2, ssn);
+            int rowsAffected = pstmt.executeUpdate();
+
+            if (rowsAffected > 0) {
+                System.out.println("데이터베이스에 직원 정보가 성공적으로 업데이트되었습니다.");
+                return rowsAffected;
+            } else {
+                System.out.println("데이터베이스 업데이트 실패.");
+                return -1;
+            }
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            return -1;
+        }
+    }
+
+
     // 그룹별 평균 급여
     public static Map<String, Double> getAverageSalaryByGroup(String groupByColumn) {
         Map<String, Double> averageSalaries = new HashMap<>();
-        String query = "SELECT " + groupByColumn + ", AVG(Salary) AS avg_salary FROM EMPLOYEE GROUP BY " + groupByColumn;
+        String query = null;
+
+        if (groupByColumn.equals("Dname")) {
+            query = "SELECT d."+ groupByColumn +", AVG(Salary) AS avg_salary "
+                        + "FROM EMPLOYEE e "
+                        + "JOIN DEPARTMENT d ON e.Dno = d.Dnumber "
+                        + "GROUP BY d.Dname";
+
+        } else {
+            query = "SELECT " + groupByColumn + ", AVG(Salary) AS avg_salary FROM EMPLOYEE GROUP BY " + groupByColumn;
+
+        }
+
 
         try (Connection connection = DatabaseConnection.getConnection();
              PreparedStatement pstmt = connection.prepareStatement(query)) {

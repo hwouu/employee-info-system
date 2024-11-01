@@ -44,7 +44,7 @@ public class EmployeeUI extends JFrame {
                 "Fname", "Minit", "Lname", "Ssn", "Bdate", "Address", "Sex", "Salary", "Super_ssn", "Dno"
         });
         groupSalaryComboBox = new JComboBox<>(new String[] {
-            "Sex", "Super_ssn", "Dno"
+            "Sex", "Super_ssn", "Dname"
         });
         groupSalaryButton = new JButton("평균 급여 검색");
         searchField = new JTextField(10);
@@ -180,7 +180,7 @@ public class EmployeeUI extends JFrame {
             loadEmployeeData(); // 데이터 재로드
         });
 
-        // 직원 수정 버튼 클릭 시 대화상자 표시 SSN을 기준으로 직원 정보 수정
+        // 직원 수정 버튼 클릭 시 대화상자 표시
         editButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -207,7 +207,7 @@ public class EmployeeUI extends JFrame {
                 }
 
                 // 수정할 항목 선택
-                String[] fields = {"Address", "Salary", "Supervisor SSN", "Department No"};
+                String[] fields = {"Address", "Salary", "Super_Ssn", "Dno"};
                 String selectedField = (String) JOptionPane.showInputDialog(
                         EmployeeUI.this,
                         "수정할 항목을 선택하세요:",
@@ -222,7 +222,12 @@ public class EmployeeUI extends JFrame {
                     // 새 값 입력
                     String newValue = JOptionPane.showInputDialog(EmployeeUI.this, selectedField + "의 새 값을 입력하세요:");
                     if (newValue != null && !newValue.trim().isEmpty()) {
+                        int affectedRow = EmployeeSearch.updateEmployeeInDatabase(ssn, selectedField, newValue);
+                        if (affectedRow > 0) {
+                            JOptionPane.showMessageDialog(EmployeeUI.this, "직원 정보가 업데이트되었습니다.");
+                        }
                         // 선택된 항목에 맞게 값을 업데이트
+
                         switch (selectedField) {
                             case "Address":
                                 tableModel.setValueAt(newValue, targetRow, 5);
@@ -230,21 +235,20 @@ public class EmployeeUI extends JFrame {
                             case "Salary":
                                 tableModel.setValueAt(newValue, targetRow, 7);
                                 break;
-                            case "Supervisor SSN":
+                            case "Super_Ssn":
                                 tableModel.setValueAt(newValue, targetRow, 8);
                                 break;
-                            case "Department No":
+                            case "Dno":
                                 tableModel.setValueAt(newValue, targetRow, 9);
                                 break;
+
                         }
-                        JOptionPane.showMessageDialog(EmployeeUI.this, "직원 정보가 업데이트되었습니다.");
                     } else {
                         JOptionPane.showMessageDialog(EmployeeUI.this, "새 값을 입력하지 않았습니다.", "오류", JOptionPane.ERROR_MESSAGE);
                     }
                 }
             }
         });
-
 
         // 직원 추가 버튼 이벤트 - 새 창 띄우기
         addButton.addActionListener(e -> openAddEmployeeDialog());
@@ -280,7 +284,7 @@ public class EmployeeUI extends JFrame {
         setVisible(true);  // JFrame을 화면에 표시
     }
 
-
+    // 그룹별 평균 급여
     private void showAverageSalaryDialog() {
         String group = groupSalaryComboBox.getSelectedItem().toString();
         Map<String, Double> avgSalaries = EmployeeSearch.getAverageSalaryByGroup(group);
