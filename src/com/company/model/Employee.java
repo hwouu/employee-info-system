@@ -11,6 +11,8 @@ public class Employee {
     private double salary;
     private String supervisorSsn;
     private int departmentNumber;
+    private String departmentName;
+
 
     // 생성자
     public Employee(String firstName, String middleInitial, String lastName, String ssn, String birthDate,
@@ -106,5 +108,13 @@ public class Employee {
 
     public void setDepartmentNumber(int departmentNumber) {
         this.departmentNumber = departmentNumber;
+    }
+
+    public String getDepartmentName() {
+        return departmentName;
+    }
+
+    public void setDepartmentName(String departmentName) {
+        this.departmentName = departmentName;
     }
 }
