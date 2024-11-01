@@ -13,14 +13,15 @@ import java.util.Map;
 
 public class EmployeeSearch {
 
-    // 모든 직원 정보 조회
     public static List<Employee> getAllEmployees() {
         List<Employee> employees = new ArrayList<>();
-        String query = "SELECT * FROM EMPLOYEE";
+        String query = "SELECT e.*, d.Dname AS departmentName " +
+                "FROM EMPLOYEE e " +
+                "JOIN DEPARTMENT d ON e.Dno = d.Dnumber";  // JOIN 추가
 
         try (Connection connection = DatabaseConnection.getConnection();
-                Statement statement = connection.createStatement();
-                ResultSet resultSet = statement.executeQuery(query)) {
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(query)) {
 
             while (resultSet.next()) {
                 Employee employee = new Employee(
@@ -33,7 +34,10 @@ public class EmployeeSearch {
                         resultSet.getString("Sex"),
                         resultSet.getDouble("Salary"),
                         resultSet.getString("Super_ssn"),
-                        resultSet.getInt("Dno"));
+                        resultSet.getInt("Dno")
+                );
+                // 부서명을 Employee 객체에 설정
+                employee.setDepartmentName(resultSet.getString("departmentName"));  // 이 부분을 추가
                 employees.add(employee);
             }
         } catch (SQLException e) {
@@ -42,6 +46,7 @@ public class EmployeeSearch {
 
         return employees;
     }
+
 
     // 조건에 따른 직원 검색
     public static List<Employee> searchEmployees(String column, String value) {
@@ -259,6 +264,8 @@ public class EmployeeSearch {
 
 
     // 직원 추가
+    // EmployeeSearch.java 파일의 addEmployee 메서드에서
+
     public static boolean addEmployee(Employee employee) {
         String query = "INSERT INTO EMPLOYEE (Fname, Minit, Lname, Ssn, Bdate, Address, Sex, Salary, Super_ssn, Dno) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -284,17 +291,20 @@ public class EmployeeSearch {
             }
 
             // SupervisorSSN 유효성 검사
-            if (!isValidSupervisorSsn(employee.getSupervisorSsn())) {
-                showErrorPopup("유효하지 않은 상사 주민등록번호입니다. 해당 상사가 존재하지 않습니다.");
-                return false;
+            if (employee.getSupervisorSsn() != null && !employee.getSupervisorSsn().isEmpty()) {
+                if (!isValidSupervisorSsn(employee.getSupervisorSsn())) {
+                    showErrorPopup("유효하지 않은 상사 주민등록번호입니다. 해당 상사가 존재하지 않습니다.");
+                    return false;
+                }
             }
 
             // 부서 번호 유효성 검사
             if (!isValidDepartmentNumber(employee.getDepartmentNumber())) {
-                showErrorPopup("유효하지 않은 부서 번호입니다. 해당 부서가 존재하지 않습니다.");
+                showErrorPopup("유효하지 않은 부서 번호입니다. 올바른 부서 번호를 입력하세요.");
                 return false;
             }
 
+            // 직원 정보 데이터베이스에 추가
             pstmt.setString(1, employee.getFirstName());
             pstmt.setString(2, employee.getMiddleInitial());
             pstmt.setString(3, employee.getLastName());
@@ -303,7 +313,7 @@ public class EmployeeSearch {
             pstmt.setString(6, employee.getAddress());
             pstmt.setString(7, employee.getSex());
             pstmt.setDouble(8, employee.getSalary());
-            pstmt.setString(9, employee.getSupervisorSsn());
+            pstmt.setString(9, employee.getSupervisorSsn().isEmpty() ? null : employee.getSupervisorSsn());
             pstmt.setInt(10, employee.getDepartmentNumber());
 
             int affectedRows = pstmt.executeUpdate();
@@ -311,11 +321,12 @@ public class EmployeeSearch {
                 JOptionPane.showMessageDialog(null, "직원이 성공적으로 추가되었습니다.");
             }
             return true;
+
         } catch (SQLIntegrityConstraintViolationException e) {
             if (e.getMessage().contains("PRIMARY")) {
                 showErrorPopup("중복된 주민등록번호가 존재합니다. 다른 번호를 입력하세요.");
             } else if (e.getMessage().contains("foreign key constraint")) {
-                showErrorPopup("유효하지 않은 부서 번호입니다. 올바른 부서 번호를 입력하세요.");
+                showErrorPopup("유효하지 않은 부서 번호 또는 상사 주민등록번호입니다.");
             }
             return false;
         } catch (ParseException e) {
@@ -331,6 +342,9 @@ public class EmployeeSearch {
             return false;
         }
     }
+
+
+
 
     // 상사 주민등록번호 유효성 검사
     private static boolean isValidSupervisorSsn(String supervisorSsn) {
@@ -353,17 +367,24 @@ public class EmployeeSearch {
 
     // 부서 번호 유효성 검사
     public static boolean isValidDepartmentNumber(int dno) {
+        System.out.println("Checking department number: " + dno); // 부서 번호 출력
+
         String query = "SELECT * FROM DEPARTMENT WHERE Dnumber = ?";
         try (Connection connection = DatabaseConnection.getConnection();
              PreparedStatement pstmt = connection.prepareStatement(query)) {
             pstmt.setInt(1, dno);
             ResultSet rs = pstmt.executeQuery();
-            return rs.next(); // 결과가 존재하면 true 반환
+
+            boolean exists = rs.next();
+            System.out.println("Department exists: " + exists); // 부서 존재 여부 출력
+
+            return exists; // 결과가 존재하면 true 반환
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
         }
     }
+
 
 
 
