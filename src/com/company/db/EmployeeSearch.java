@@ -276,11 +276,12 @@ public class EmployeeSearch {
 
             // 날짜 형식 확인
             if (!isValidDate(employee.getBirthDate())) {
-                throw new ParseException("유효하지 않은 날짜 형식입니다. YYYY-MM-DD 형식으로 입력하세요.", 0);
+                showErrorPopup("유효하지 않은 날짜 형식입니다. YYYY-MM-DD 형식으로 입력하세요.");
+                return false;
             }
 
             // 성별 유효성 검사
-            if (!employee.getSex().equals("F") && !employee.getSex().equals("M")) {
+            if (!employee.getSex().equalsIgnoreCase("F") && !employee.getSex().equalsIgnoreCase("M")) {
                 showErrorPopup("성별은 'F' 또는 'M'만 가능합니다.");
                 return false;
             }
@@ -297,8 +298,9 @@ public class EmployeeSearch {
                 return false;
             }
 
-            // 부서 번호 유효성 검사
-            if (!isValidDepartmentNumber(employee.getDepartmentNumber())) {
+            // 부서 번호 유효성 검사 및 기본값 할당
+            int dno = employee.getDepartmentNumber();
+            if (dno == 0 || !isValidDepartmentNumber(dno)) {
                 showErrorPopup("유효하지 않은 부서 번호입니다. 해당 부서가 존재하지 않습니다.");
                 return false;
             }
@@ -312,7 +314,7 @@ public class EmployeeSearch {
             pstmt.setString(7, employee.getSex());
             pstmt.setDouble(8, employee.getSalary());
             pstmt.setString(9, employee.getSupervisorSsn());
-            pstmt.setInt(10, employee.getDepartmentNumber());
+            pstmt.setInt(10, dno);
 
             int affectedRows = pstmt.executeUpdate();
             if (affectedRows > 0) {
@@ -326,19 +328,13 @@ public class EmployeeSearch {
                 showErrorPopup("유효하지 않은 부서 번호입니다. 올바른 부서 번호를 입력하세요.");
             }
             return false;
-        } catch (ParseException e) {
-            showErrorPopup("유효하지 않은 날짜 형식입니다. YYYY-MM-DD 형식으로 입력하세요.");
-            return false;
         } catch (SQLException e) {
             e.printStackTrace();
             showErrorPopup("데이터베이스 오류가 발생했습니다. 다시 시도하세요.");
             return false;
-        } catch (Exception e) {
-            e.printStackTrace();
-            showErrorPopup("예상치 못한 오류가 발생했습니다. 오류를 확인하세요.");
-            return false;
         }
     }
+
 
     // 상사 주민등록번호 유효성 검사
     private static boolean isValidSupervisorSsn(String supervisorSsn) {
