@@ -435,19 +435,33 @@ public class EmployeeUI extends JFrame {
             String superSsn = superSsnField.getText();
             String dno = dnoField.getText();
 
-            // Employee 객체 생성 및 데이터베이스에 추가
-            Employee newEmployee = new Employee(fname, minit, lname, ssn, bdate, address, sex, Double.parseDouble(salary), superSsn, Integer.parseInt(dno));
-            boolean addResult = EmployeeSearch.addEmployee(newEmployee);
-
-            // 추가된 직원 정보를 메인 테이블에 반영
-            loadEmployeeData();
-
-            // 추가 성공 시 창 닫기
-            if (addResult) {
-                dialog.dispose();
+            // 필드 유효성 검사
+            if (fname.isEmpty() || lname.isEmpty() || ssn.isEmpty() || bdate.isEmpty() || address.isEmpty() || sex.isEmpty() || salary.isEmpty() || dno.isEmpty()) {
+                JOptionPane.showMessageDialog(dialog, "모든 필드를 채워주세요.", "오류", JOptionPane.ERROR_MESSAGE);
+                return;
             }
-            System.out.println("Employee added: " + addResult);
+
+            try {
+                // Employee 객체 생성 및 데이터베이스에 추가
+                double parsedSalary = Double.parseDouble(salary);
+                int parsedDno = Integer.parseInt(dno);
+
+                Employee newEmployee = new Employee(fname, minit, lname, ssn, bdate, address, sex, parsedSalary, superSsn, parsedDno);
+                boolean addResult = EmployeeSearch.addEmployee(newEmployee);
+
+                // 추가된 직원 정보를 메인 테이블에 반영
+                loadEmployeeData();
+
+                // 추가 성공 시 창 닫기
+                if (addResult) {
+                    dialog.dispose();
+                }
+                System.out.println("Employee added: " + addResult);
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(dialog, "급여 또는 부서 번호는 숫자여야 합니다.", "입력 오류", JOptionPane.ERROR_MESSAGE);
+            }
         });
+
 
         dialog.setVisible(true);
     }
