@@ -51,10 +51,20 @@ public class EmployeeSearch {
     // 조건에 따른 직원 검색
     public static List<Employee> searchEmployees(String column, String value) {
         List<Employee> employees = new ArrayList<>();
-        String query = "SELECT * FROM EMPLOYEE WHERE " + column + " = ?";
+        String query;
+
+        // Department Name으로 검색할 경우 JOIN을 사용하여 Dname 필드에 대해 검색
+        if (column.equals("Department Name")) {
+            query = "SELECT e.*, d.Dname AS departmentName " +
+                    "FROM EMPLOYEE e " +
+                    "JOIN DEPARTMENT d ON e.Dno = d.Dnumber " +
+                    "WHERE d.Dname = ?";
+        } else {
+            query = "SELECT * FROM EMPLOYEE WHERE " + column + " = ?";
+        }
 
         try (Connection connection = DatabaseConnection.getConnection();
-                PreparedStatement pstmt = connection.prepareStatement(query)) {
+             PreparedStatement pstmt = connection.prepareStatement(query)) {
 
             pstmt.setString(1, value);
             ResultSet resultSet = pstmt.executeQuery();
@@ -70,7 +80,9 @@ public class EmployeeSearch {
                         resultSet.getString("Sex"),
                         resultSet.getDouble("Salary"),
                         resultSet.getString("Super_ssn"),
-                        resultSet.getInt("Dno"));
+                        resultSet.getInt("Dno")
+                );
+                employee.setDepartmentName(resultSet.getString("departmentName"));
                 employees.add(employee);
             }
         } catch (SQLException e) {
@@ -79,6 +91,7 @@ public class EmployeeSearch {
 
         return employees;
     }
+
 
     // 직원 수정
     public static int updateEmployeeInDatabase(String ssn, String field, String newValue) {
@@ -217,68 +230,71 @@ public class EmployeeSearch {
         return null;
     }
 
-    // 조건에 맞는 직원 데이터를 삭제하는 함수
     public static int deleteEmployeeByConditions(String conditionsInput) {
-        if (conditionsInput != null && !conditionsInput.trim().isEmpty()) {
-            String[] conditionPairs = conditionsInput.split(",");
-            StringBuilder queryBuilder = new StringBuilder("DELETE FROM EMPLOYEE WHERE ");
-            List<String> values = new ArrayList<>();
+        if (conditionsInput == null || conditionsInput.trim().isEmpty()) {
+            return -1; // 조건이 없는 경우
+        }
 
-            for (int i = 0; i < conditionPairs.length; i++) {
-                String condition = conditionPairs[i].trim();
-                String operator = null;
+        String[] conditionPairs = conditionsInput.split(",");
+        StringBuilder queryBuilder = new StringBuilder("DELETE FROM EMPLOYEE WHERE ");
+        List<String> values = new ArrayList<>();
 
-                if (condition.contains(">=")) {
-                    operator = ">=";
-                } else if (condition.contains("<=")) {
-                    operator = "<=";
-                } else if (condition.contains(">")) {
-                    operator = ">";
-                } else if (condition.contains("<")) {
-                    operator = "<";
-                } else if (condition.contains("!=")) {
-                    operator = "!=";
-                } else if (condition.contains("=")) {
-                    operator = "=";
+        for (int i = 0; i < conditionPairs.length; i++) {
+            String condition = conditionPairs[i].trim();
+            String operator = null;
+
+            if (condition.contains(">=")) operator = ">=";
+            else if (condition.contains("<=")) operator = "<=";
+            else if (condition.contains(">")) operator = ">";
+            else if (condition.contains("<")) operator = "<";
+            else if (condition.contains("!=")) operator = "!=";
+            else if (condition.contains("=")) operator = "=";
+
+            if (operator == null) return -1;
+
+            String[] fieldValue = condition.split(operator);
+            if (fieldValue.length == 2) {
+                String field = fieldValue[0].trim();
+                String value = fieldValue[1].trim();
+
+                values.add(value);
+                queryBuilder.append(field).append(" ").append(operator).append(" ?");
+                if (i < conditionPairs.length - 1) {
+                    queryBuilder.append(" AND ");
                 }
-
-                if (operator == null) {
-                    return -1;
-                }
-
-                String[] fieldValue = condition.split(operator);
-                if (fieldValue.length == 2) {
-                    String field = fieldValue[0].trim();
-                    String value = fieldValue[1].trim();
-
-                    values.add(value);
-                    queryBuilder.append(field).append(" ").append(operator).append(" ?");
-                    if (i < conditionPairs.length - 1) {
-                        queryBuilder.append(" AND ");
-                    }
-                } else {
-                    return -1;
-                }
-            }
-
-            String deleteQuery = queryBuilder.toString();
-
-            try (Connection connection = DatabaseConnection.getConnection();
-                 PreparedStatement deletePstmt = connection.prepareStatement(deleteQuery)) {
-
-                for (int i = 0; i < values.size(); i++) {
-                    deletePstmt.setString(i + 1, values.get(i));
-                }
-
-                return deletePstmt.executeUpdate();
-            } catch (SQLException ex) {
-                ex.printStackTrace();
+            } else {
                 return -1;
             }
-        } else {
+        }
+
+        String deleteQuery = queryBuilder.toString();
+
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement deletePstmt = connection.prepareStatement(deleteQuery)) {
+
+            for (int i = 0; i < values.size(); i++) {
+                deletePstmt.setString(i + 1, values.get(i));
+            }
+
+            return deletePstmt.executeUpdate();
+        } catch (SQLIntegrityConstraintViolationException ex) {
+            if (ex.getMessage().contains("FK_Super_ssn")) {
+                showErrorPopup("이 직원은 다른 직원의 상사로 설정되어 있어 삭제할 수 없습니다.");
+            } else if (ex.getMessage().contains("dependent_ibfk_1")) {
+                showErrorPopup("이 직원에게 종속된 의존자가 존재하여 삭제할 수 없습니다.");
+            } else {
+                showErrorPopup("외래키 제약 조건 위반으로 인해 직원 삭제가 불가능합니다.");
+            }
+            ex.printStackTrace();
+            return -1;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            showErrorPopup("데이터베이스 오류가 발생했습니다. 관리자에게 문의하세요.");
             return -1;
         }
     }
+
+
 
     // 직원 삭제
     public static void deleteEmployee(String ssn) {
@@ -427,26 +443,9 @@ public class EmployeeSearch {
 
     // 오류 팝업 메시지 생성
     private static void showErrorPopup(String message) {
-        // 비모달 JDialog 창 생성
-        JDialog dialog = new JDialog();
-        dialog.setTitle("오류");
-        dialog.setModal(true); // 모달로 설정하여 다른 창을 열 때 창을 닫을 때까지 대기
-
-        // 오류 메시지와 확인 버튼을 포함한 패널 생성
-        JPanel panel = new JPanel();
-        JLabel label = new JLabel(message);
-        JButton button = new JButton("확인");
-
-        // 확인 버튼 클릭 시 창 닫기
-        button.addActionListener(e -> dialog.dispose());
-
-        panel.add(label);
-        panel.add(button);
-        dialog.add(panel);
-        dialog.pack();
-        dialog.setLocationRelativeTo(null);
-        dialog.setVisible(true);
+        JOptionPane.showMessageDialog(null, message, "오류", JOptionPane.ERROR_MESSAGE);
     }
+
 
 
     // 날짜 형식 확인 메서드
