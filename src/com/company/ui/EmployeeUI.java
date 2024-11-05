@@ -149,15 +149,20 @@ public class EmployeeUI extends JFrame {
             String conditionsInput = JOptionPane.showInputDialog(this,
                     "삭제 조건을 입력하세요 (예: SSN=123456789, Salary>50000):");
 
+            if (conditionsInput == null || conditionsInput.trim().isEmpty()) {
+                // 조건이 입력되지 않았거나 사용자가 취소를 눌렀을 경우 바로 종료
+                return;
+            }
+
+            // 이후의 삭제 로직 계속 진행
             String employeeData = EmployeeSearch.getEmployeeDataByConditions(conditionsInput);
 
             if (employeeData != null && !employeeData.isEmpty()) {
-                // JTextArea와 JScrollPane 생성
-                JTextArea textArea = new JTextArea(15, 30); // 15줄, 30열 크기
+                JTextArea textArea = new JTextArea(15, 30);
                 textArea.setText("삭제할 직원 정보:\n" + employeeData);
                 textArea.setLineWrap(true);
                 textArea.setWrapStyleWord(true);
-                textArea.setEditable(false); // 읽기 전용으로 설정
+                textArea.setEditable(false);
                 JScrollPane scrollPane1 = new JScrollPane(textArea);
 
                 int confirm = JOptionPane.showConfirmDialog(this, scrollPane1, "삭제 확인", JOptionPane.YES_NO_OPTION);
@@ -179,6 +184,7 @@ public class EmployeeUI extends JFrame {
 
             loadEmployeeData(); // 데이터 재로드
         });
+
 
         // 직원 수정 버튼 클릭 시 대화상자 표시
         editButton.addActionListener(new ActionListener() {
