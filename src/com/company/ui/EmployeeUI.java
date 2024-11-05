@@ -40,8 +40,9 @@ public class EmployeeUI extends JFrame {
         // 검색 필드와 버튼 패널 (상단)
         JPanel searchPanel = new JPanel();
         searchPanel.setLayout(new FlowLayout()); // 컴포넌트를 한 줄로 배치
+        // 검색 범위 토글에 Dno 대신 Department Name 추가
         searchColumnComboBox = new JComboBox<>(new String[]{
-                "Fname", "Minit", "Lname", "Ssn", "Bdate", "Address", "Sex", "Salary", "Super_ssn", "Dno"
+                "Fname", "Minit", "Lname", "Ssn", "Bdate", "Address", "Sex", "Salary", "Super_ssn", "Department Name"
         });
         groupSalaryComboBox = new JComboBox<>(new String[] {
             "Sex", "Super_ssn", "Dname"

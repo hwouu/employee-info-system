@@ -51,10 +51,20 @@ public class EmployeeSearch {
     // 조건에 따른 직원 검색
     public static List<Employee> searchEmployees(String column, String value) {
         List<Employee> employees = new ArrayList<>();
-        String query = "SELECT * FROM EMPLOYEE WHERE " + column + " = ?";
+        String query;
+
+        // Department Name으로 검색할 경우 JOIN을 사용하여 Dname 필드에 대해 검색
+        if (column.equals("Department Name")) {
+            query = "SELECT e.*, d.Dname AS departmentName " +
+                    "FROM EMPLOYEE e " +
+                    "JOIN DEPARTMENT d ON e.Dno = d.Dnumber " +
+                    "WHERE d.Dname = ?";
+        } else {
+            query = "SELECT * FROM EMPLOYEE WHERE " + column + " = ?";
+        }
 
         try (Connection connection = DatabaseConnection.getConnection();
-                PreparedStatement pstmt = connection.prepareStatement(query)) {
+             PreparedStatement pstmt = connection.prepareStatement(query)) {
 
             pstmt.setString(1, value);
             ResultSet resultSet = pstmt.executeQuery();
@@ -70,7 +80,9 @@ public class EmployeeSearch {
                         resultSet.getString("Sex"),
                         resultSet.getDouble("Salary"),
                         resultSet.getString("Super_ssn"),
-                        resultSet.getInt("Dno"));
+                        resultSet.getInt("Dno")
+                );
+                employee.setDepartmentName(resultSet.getString("departmentName"));
                 employees.add(employee);
             }
         } catch (SQLException e) {
@@ -79,6 +91,7 @@ public class EmployeeSearch {
 
         return employees;
     }
+
 
     // 직원 수정
     public static int updateEmployeeInDatabase(String ssn, String field, String newValue) {
