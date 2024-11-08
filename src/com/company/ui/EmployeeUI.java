@@ -36,6 +36,7 @@ public class EmployeeUI extends JFrame {
         JScrollPane scrollPane = new JScrollPane(employeeTable);
         add(scrollPane, BorderLayout.CENTER);
 
+        ActionListener checkBoxListener = e -> loadEmployeeData();
 
         // 검색 필드와 버튼 패널 (상단)
         JPanel searchPanel = new JPanel();
@@ -67,16 +68,38 @@ public class EmployeeUI extends JFrame {
         // 체크박스 패널 생성 (왼쪽)
         JPanel checkBoxPanel = new JPanel();
         checkBoxPanel.setLayout(new GridLayout(0, 1)); // 세로로 체크박스 배치
+
+        // EmployeeUI.java 체크박스 생성 부분 수정
+
         fnameCheckBox = new JCheckBox("First Name", true);
+        fnameCheckBox.addActionListener(checkBoxListener);
+
         minitCheckBox = new JCheckBox("Middle Initial", true);
+        minitCheckBox.addActionListener(checkBoxListener);
+
         lnameCheckBox = new JCheckBox("Last Name", true);
+        lnameCheckBox.addActionListener(checkBoxListener);
+
         ssnCheckBox = new JCheckBox("SSN", true);
+        ssnCheckBox.addActionListener(checkBoxListener);
+
         bdateCheckBox = new JCheckBox("Birth Date", true);
+        bdateCheckBox.addActionListener(checkBoxListener);
+
         addressCheckBox = new JCheckBox("Address", true);
+        addressCheckBox.addActionListener(checkBoxListener);
+
         sexCheckBox = new JCheckBox("Sex", true);
+        sexCheckBox.addActionListener(checkBoxListener);
+
         salaryCheckBox = new JCheckBox("Salary", true);
+        salaryCheckBox.addActionListener(checkBoxListener);
+
         superSsnCheckBox = new JCheckBox("Supervisor SSN", true);
+        superSsnCheckBox.addActionListener(checkBoxListener);
+
         dnoCheckBox = new JCheckBox("Department Name", true);
+        dnoCheckBox.addActionListener(checkBoxListener);
 
         checkBoxPanel.add(fnameCheckBox);
         checkBoxPanel.add(minitCheckBox);
@@ -307,8 +330,26 @@ public class EmployeeUI extends JFrame {
 
     private void loadEmployeeData() {
         List<Employee> employees = EmployeeSearch.getAllEmployees();
+
+        // 표시할 컬럼 목록 동적 업데이트
+        List<String> visibleColumns = new ArrayList<>();
+        if (fnameCheckBox.isSelected()) visibleColumns.add("First Name");
+        if (minitCheckBox.isSelected()) visibleColumns.add("Middle Initial");
+        if (lnameCheckBox.isSelected()) visibleColumns.add("Last Name");
+        if (ssnCheckBox.isSelected()) visibleColumns.add("SSN");
+        if (bdateCheckBox.isSelected()) visibleColumns.add("Birth Date");
+        if (addressCheckBox.isSelected()) visibleColumns.add("Address");
+        if (sexCheckBox.isSelected()) visibleColumns.add("Sex");
+        if (salaryCheckBox.isSelected()) visibleColumns.add("Salary");
+        if (superSsnCheckBox.isSelected()) visibleColumns.add("Supervisor SSN");
+        if (dnoCheckBox.isSelected()) visibleColumns.add("Department Name");
+
+        // 테이블 모델의 컬럼 업데이트
+        tableModel.setColumnIdentifiers(visibleColumns.toArray());
+
         tableModel.setRowCount(0);  // 테이블 초기화
 
+        // 데이터 로드
         for (Employee employee : employees) {
             List<Object> rowData = new ArrayList<>();
 
@@ -321,7 +362,7 @@ public class EmployeeUI extends JFrame {
             if (sexCheckBox.isSelected()) rowData.add(employee.getSex());
             if (salaryCheckBox.isSelected()) rowData.add(employee.getSalary());
             if (superSsnCheckBox.isSelected()) rowData.add(employee.getSupervisorSsn());
-            if (dnoCheckBox.isSelected()) rowData.add(employee.getDepartmentName());  // 부서명 출력 확인
+            if (dnoCheckBox.isSelected()) rowData.add(employee.getDepartmentName());
 
             tableModel.addRow(rowData.toArray());
         }
