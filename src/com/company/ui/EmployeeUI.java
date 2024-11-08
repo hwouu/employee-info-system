@@ -30,9 +30,39 @@ public class EmployeeUI extends JFrame {
         setLayout(new BorderLayout());
 
         // 테이블 생성
-        String[] columnNames = {"First Name", "Middle Initial", "Last Name", "SSN", "Birth Date", "Address", "Sex", "Salary", "Supervisor SSN", "Department Name"};
-        tableModel = new DefaultTableModel(columnNames, 0);
+        String[] columnNames = {"First Name", "Middle Initial", "Last Name", "SSN", "Birth Date",
+                "Address", "Sex", "Salary", "Supervisor SSN", "Department Name"};
+        tableModel = new DefaultTableModel(columnNames, 0) {
+            @Override
+            public Class<?> getColumnClass(int columnIndex) {
+                if (columnIndex == 7) { // Salary 컬럼
+                    return Double.class;
+                }
+                return String.class;
+            }
+        };
         employeeTable = new JTable(tableModel);
+
+        // 여기부터 새로운 코드 추가
+        employeeTable.setAutoCreateRowSorter(true);
+
+        // 각 컬럼의 선호하는 너비 설정
+        employeeTable.getColumnModel().getColumn(0).setPreferredWidth(100); // First Name
+        employeeTable.getColumnModel().getColumn(1).setPreferredWidth(50);  // Middle Initial
+        employeeTable.getColumnModel().getColumn(2).setPreferredWidth(100); // Last Name
+        employeeTable.getColumnModel().getColumn(3).setPreferredWidth(100); // SSN
+        employeeTable.getColumnModel().getColumn(4).setPreferredWidth(100); // Birth Date
+        employeeTable.getColumnModel().getColumn(5).setPreferredWidth(150); // Address
+        employeeTable.getColumnModel().getColumn(6).setPreferredWidth(50);  // Sex
+        employeeTable.getColumnModel().getColumn(7).setPreferredWidth(100); // Salary
+        employeeTable.getColumnModel().getColumn(8).setPreferredWidth(100); // Supervisor SSN
+        employeeTable.getColumnModel().getColumn(9).setPreferredWidth(150); // Department Name
+
+        // 테이블 설정
+        employeeTable.setFillsViewportHeight(true);
+        employeeTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+        // 기존 코드 계속
         JScrollPane scrollPane = new JScrollPane(employeeTable);
         add(scrollPane, BorderLayout.CENTER);
 
