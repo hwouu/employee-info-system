@@ -17,11 +17,11 @@ public class EmployeeSearch {
         List<Employee> employees = new ArrayList<>();
         String query = "SELECT e.*, d.Dname AS departmentName " +
                 "FROM EMPLOYEE e " +
-                "JOIN DEPARTMENT d ON e.Dno = d.Dnumber";  // JOIN 추가
+                "JOIN DEPARTMENT d ON e.Dno = d.Dnumber"; // JOIN 추가
 
         try (Connection connection = DatabaseConnection.getConnection();
-             Statement statement = connection.createStatement();
-             ResultSet resultSet = statement.executeQuery(query)) {
+                Statement statement = connection.createStatement();
+                ResultSet resultSet = statement.executeQuery(query)) {
 
             while (resultSet.next()) {
                 Employee employee = new Employee(
@@ -34,10 +34,9 @@ public class EmployeeSearch {
                         resultSet.getString("Sex"),
                         resultSet.getDouble("Salary"),
                         resultSet.getString("Super_ssn"),
-                        resultSet.getInt("Dno")
-                );
+                        resultSet.getInt("Dno"));
                 // 부서명을 Employee 객체에 설정
-                employee.setDepartmentName(resultSet.getString("departmentName"));  // 이 부분을 추가
+                employee.setDepartmentName(resultSet.getString("departmentName")); // 이 부분을 추가
                 employees.add(employee);
             }
         } catch (SQLException e) {
@@ -47,26 +46,56 @@ public class EmployeeSearch {
         return employees;
     }
 
-
     // 조건에 따른 직원 검색
-    public static List<Employee> searchEmployees(String column, String value) {
+    public static List<Employee> searchEmployees(List<List<String>> conditions) {
+    /*
+    conditions 예시 = [["Fname", "Yang"], ["Salary", ">300"]]
+    */
         List<Employee> employees = new ArrayList<>();
-        String query;
+        StringBuilder query = new StringBuilder("SELECT e.*, d.Dname AS departmentName FROM EMPLOYEE e ");
+        boolean joinDepartment = false; // JOIN 필요 여부
 
-        // Department Name으로 검색할 경우 JOIN을 사용하여 Dname 필드에 대해 검색
-        if (column.equals("Department Name")) {
-            query = "SELECT e.*, d.Dname AS departmentName " +
-                    "FROM EMPLOYEE e " +
-                    "JOIN DEPARTMENT d ON e.Dno = d.Dnumber " +
-                    "WHERE d.Dname = ?";
+        // 조건 처리
+        if (!conditions.isEmpty()) {
+            query.append("LEFT JOIN DEPARTMENT d ON e.Dno = d.Dnumber WHERE ");
+            for (int i = 0; i < conditions.size(); i++) {
+                String key = conditions.get(i).get(0);
+                String value = conditions.get(i).get(1);
+
+                if (key.equals("Department Name")) {
+                    query.append("d.Dname = ? ");
+                    joinDepartment = true;
+                } else {
+                    if (value.startsWith(">") || value.startsWith("<")) {
+                        query.append("e.").append(key).append(" ").append(value.charAt(0)).append(" ? ");
+                        value = value.substring(1); // 비교 연산자를 제외한 값만 사용
+                    } else {
+                        query.append("e.").append(key).append(" = ? ");
+                    }
+                }
+
+                if (i < conditions.size() - 1) {
+                    query.append("AND ");
+                }
+            }
         } else {
-            query = "SELECT * FROM EMPLOYEE WHERE " + column + " = ?";
+            query.append("LEFT JOIN DEPARTMENT d ON e.Dno = d.Dnumber");
         }
 
-        try (Connection connection = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = connection.prepareStatement(query)) {
+        //System.out.println("Generated Query: " + query);
 
-            pstmt.setString(1, value);
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(query.toString())) {
+
+            // 조건 파라미터 설정
+            for (int i = 0; i < conditions.size(); i++) {
+                String value = conditions.get(i).get(1);
+                if (value.startsWith(">") || value.startsWith("<")) {
+                    value = value.substring(1); // 비교 연산자를 제외한 값만 사용
+                }
+                pstmt.setString(i + 1, value);
+            }
+
             ResultSet resultSet = pstmt.executeQuery();
 
             while (resultSet.next()) {
@@ -80,9 +109,10 @@ public class EmployeeSearch {
                         resultSet.getString("Sex"),
                         resultSet.getDouble("Salary"),
                         resultSet.getString("Super_ssn"),
-                        resultSet.getInt("Dno")
-                );
-                employee.setDepartmentName(resultSet.getString("departmentName"));
+                        resultSet.getInt("Dno"));
+                if (joinDepartment) {
+                    employee.setDepartmentName(resultSet.getString("departmentName"));
+                }
                 employees.add(employee);
             }
         } catch (SQLException e) {
@@ -92,13 +122,12 @@ public class EmployeeSearch {
         return employees;
     }
 
-
     // 직원 수정
     public static int updateEmployeeInDatabase(String ssn, String field, String newValue) {
         String query = "UPDATE employee SET " + field + " = ? WHERE ssn = ?";
 
         try (Connection connection = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = connection.prepareStatement(query)) {
+                PreparedStatement pstmt = connection.prepareStatement(query)) {
             pstmt.setString(1, newValue);
             pstmt.setString(2, ssn);
             int rowsAffected = pstmt.executeUpdate();
@@ -117,26 +146,24 @@ public class EmployeeSearch {
         }
     }
 
-
     // 그룹별 평균 급여
     public static Map<String, Double> getAverageSalaryByGroup(String groupByColumn) {
         Map<String, Double> averageSalaries = new HashMap<>();
         String query = null;
 
         if (groupByColumn.equals("Dname")) {
-            query = "SELECT d."+ groupByColumn +", AVG(Salary) AS avg_salary "
-                        + "FROM EMPLOYEE e "
-                        + "JOIN DEPARTMENT d ON e.Dno = d.Dnumber "
-                        + "GROUP BY d.Dname";
+            query = "SELECT d." + groupByColumn + ", AVG(Salary) AS avg_salary "
+                    + "FROM EMPLOYEE e "
+                    + "JOIN DEPARTMENT d ON e.Dno = d.Dnumber "
+                    + "GROUP BY d.Dname";
 
         } else {
             query = "SELECT " + groupByColumn + ", AVG(Salary) AS avg_salary FROM EMPLOYEE GROUP BY " + groupByColumn;
 
         }
 
-
         try (Connection connection = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = connection.prepareStatement(query)) {
+                PreparedStatement pstmt = connection.prepareStatement(query)) {
 
             ResultSet resultSet = pstmt.executeQuery();
 
@@ -151,7 +178,6 @@ public class EmployeeSearch {
 
         return averageSalaries;
     }
-
 
     // 데이터를 조회하여 조건에 맞는 직원 정보를 반환하는 함수
     public static String getEmployeeDataByConditions(String conditionsInput) {
@@ -202,7 +228,7 @@ public class EmployeeSearch {
             StringBuilder employeeData = new StringBuilder();
 
             try (Connection connection = DatabaseConnection.getConnection();
-                 PreparedStatement selectPstmt = connection.prepareStatement(selectQuery)) {
+                    PreparedStatement selectPstmt = connection.prepareStatement(selectQuery)) {
 
                 for (int i = 0; i < values.size(); i++) {
                     selectPstmt.setString(i + 1, values.get(i));
@@ -216,7 +242,8 @@ public class EmployeeSearch {
 
                     do {
                         for (int i = 1; i <= columnCount; i++) {
-                            employeeData.append(metaData.getColumnName(i)).append(": ").append(resultSet.getString(i)).append("\n");
+                            employeeData.append(metaData.getColumnName(i)).append(": ").append(resultSet.getString(i))
+                                    .append("\n");
                         }
                         employeeData.append("\n");
                     } while (resultSet.next());
@@ -243,14 +270,21 @@ public class EmployeeSearch {
             String condition = conditionPairs[i].trim();
             String operator = null;
 
-            if (condition.contains(">=")) operator = ">=";
-            else if (condition.contains("<=")) operator = "<=";
-            else if (condition.contains(">")) operator = ">";
-            else if (condition.contains("<")) operator = "<";
-            else if (condition.contains("!=")) operator = "!=";
-            else if (condition.contains("=")) operator = "=";
+            if (condition.contains(">="))
+                operator = ">=";
+            else if (condition.contains("<="))
+                operator = "<=";
+            else if (condition.contains(">"))
+                operator = ">";
+            else if (condition.contains("<"))
+                operator = "<";
+            else if (condition.contains("!="))
+                operator = "!=";
+            else if (condition.contains("="))
+                operator = "=";
 
-            if (operator == null) return -1;
+            if (operator == null)
+                return -1;
 
             String[] fieldValue = condition.split(operator);
             if (fieldValue.length == 2) {
@@ -270,7 +304,7 @@ public class EmployeeSearch {
         String deleteQuery = queryBuilder.toString();
 
         try (Connection connection = DatabaseConnection.getConnection();
-             PreparedStatement deletePstmt = connection.prepareStatement(deleteQuery)) {
+                PreparedStatement deletePstmt = connection.prepareStatement(deleteQuery)) {
 
             for (int i = 0; i < values.size(); i++) {
                 deletePstmt.setString(i + 1, values.get(i));
@@ -294,8 +328,6 @@ public class EmployeeSearch {
         }
     }
 
-
-
     // 직원 삭제
     public static void deleteEmployee(String ssn) {
         String query = "DELETE FROM EMPLOYEE WHERE Ssn = ?";
@@ -314,8 +346,6 @@ public class EmployeeSearch {
         }
     }
 
-
-
     // 직원 추가
     // EmployeeSearch.java 파일의 addEmployee 메서드에서
 
@@ -324,7 +354,7 @@ public class EmployeeSearch {
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection connection = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = connection.prepareStatement(query)) {
+                PreparedStatement pstmt = connection.prepareStatement(query)) {
 
             // 날짜 형식 확인
             if (!isValidDate(employee.getBirthDate())) {
@@ -396,9 +426,6 @@ public class EmployeeSearch {
         }
     }
 
-
-
-
     // 상사 주민등록번호 유효성 검사
     private static boolean isValidSupervisorSsn(String supervisorSsn) {
         if (supervisorSsn == null || supervisorSsn.isEmpty()) {
@@ -406,7 +433,7 @@ public class EmployeeSearch {
         }
         String query = "SELECT COUNT(*) FROM EMPLOYEE WHERE Ssn = ?";
         try (Connection connection = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = connection.prepareStatement(query)) {
+                PreparedStatement pstmt = connection.prepareStatement(query)) {
             pstmt.setString(1, supervisorSsn);
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()) {
@@ -424,7 +451,7 @@ public class EmployeeSearch {
 
         String query = "SELECT * FROM DEPARTMENT WHERE Dnumber = ?";
         try (Connection connection = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = connection.prepareStatement(query)) {
+                PreparedStatement pstmt = connection.prepareStatement(query)) {
             pstmt.setInt(1, dno);
             ResultSet rs = pstmt.executeQuery();
 
@@ -438,15 +465,10 @@ public class EmployeeSearch {
         }
     }
 
-
-
-
     // 오류 팝업 메시지 생성
     private static void showErrorPopup(String message) {
         JOptionPane.showMessageDialog(null, message, "오류", JOptionPane.ERROR_MESSAGE);
     }
-
-
 
     // 날짜 형식 확인 메서드
     private static boolean isValidDate(String date) {

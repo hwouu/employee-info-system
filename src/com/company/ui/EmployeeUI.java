@@ -15,9 +15,10 @@ import java.util.Map;
 public class EmployeeUI extends JFrame {
     private JTable employeeTable;
     private DefaultTableModel tableModel;
-    private JTextField searchField;
-    private JComboBox<String> searchColumnComboBox, groupSalaryComboBox;
-    private JButton searchButton, resetButton, deleteButton, conditionDeleteButton, addButton, editButton, groupSalaryButton;
+    private List<JTextField> searchField;
+    private JComboBox groupSalaryComboBox;
+    private JButton searchButton, resetButton, deleteButton, conditionDeleteButton, addButton, editButton,
+            groupSalaryButton;
 
     // 체크박스들
     private JCheckBox fnameCheckBox, minitCheckBox, lnameCheckBox, ssnCheckBox, bdateCheckBox,
@@ -30,7 +31,8 @@ public class EmployeeUI extends JFrame {
         setLayout(new BorderLayout());
 
         // 테이블 생성
-        String[] columnNames = {"First Name", "Middle Initial", "Last Name", "SSN", "Birth Date", "Address", "Sex", "Salary", "Supervisor SSN", "Department Name"};
+        String[] columnNames = { "First Name", "Middle Initial", "Last Name", "SSN", "Birth Date", "Address", "Sex",
+                "Salary", "Supervisor SSN", "Department Name" };
         tableModel = new DefaultTableModel(columnNames, 0);
         employeeTable = new JTable(tableModel);
         JScrollPane scrollPane = new JScrollPane(employeeTable);
@@ -38,32 +40,28 @@ public class EmployeeUI extends JFrame {
 
         ActionListener checkBoxListener = e -> loadEmployeeData();
 
-        // 검색 필드와 버튼 패널 (상단)
-        JPanel searchPanel = new JPanel();
-        searchPanel.setLayout(new FlowLayout()); // 컴포넌트를 한 줄로 배치
-        // 검색 범위 토글에 Dno 대신 Department Name 추가
-        searchColumnComboBox = new JComboBox<>(new String[]{
-                "Fname", "Minit", "Lname", "Ssn", "Bdate", "Address", "Sex", "Salary", "Super_ssn", "Department Name"
-        });
+        // 검색 필드 리스트 (우측)
+        JPanel searchListPanel = new JPanel();
+        searchListPanel.setLayout(new BoxLayout(searchListPanel, BoxLayout.Y_AXIS));
+        JButton addQueryButton = new JButton("추가하기");
+
+        searchListPanel.add(addQueryButton);
+        searchListPanel.add(Box.createRigidArea(new Dimension(0, 10))); // 간격 추가
+        searchListPanel.add(searchButton = new JButton("검색하기"));
+        add(searchListPanel, BorderLayout.EAST);
+
+        // 그룹별 평균 급여 검색
+        JPanel groupSalaryPanel = new JPanel();
+        groupSalaryPanel.setLayout(new FlowLayout());
         groupSalaryComboBox = new JComboBox<>(new String[] {
-            "Sex", "Super_ssn", "Dname"
+                "Sex", "Super_ssn", "Dname"
         });
         groupSalaryButton = new JButton("평균 급여 검색");
-        searchField = new JTextField(10);
-        searchButton = new JButton("검색");
-        searchPanel.add(new JLabel("검색 범위"));
-        searchPanel.add(searchColumnComboBox);
-        searchPanel.add(new JLabel("검색 내용"));
-        searchPanel.add(searchField);
-        searchPanel.add(searchButton);
-        searchPanel.add(new JLabel("그룹별 평균 급여"));
-        searchPanel.add(groupSalaryComboBox);
-        searchPanel.add(groupSalaryButton);
+        groupSalaryPanel.add(new JLabel("그룹별 평균 급여"));
+        groupSalaryPanel.add(groupSalaryComboBox);
+        groupSalaryPanel.add(groupSalaryButton);
 
-
-
-
-        add(searchPanel, BorderLayout.NORTH);
+        add(groupSalaryPanel, BorderLayout.NORTH);
 
         // 체크박스 패널 생성 (왼쪽)
         JPanel checkBoxPanel = new JPanel();
@@ -116,25 +114,25 @@ public class EmployeeUI extends JFrame {
 
         // 하단에 초기화, 직원 추가, 삭제 버튼 패널 추가
         JPanel buttonPanel = new JPanel();
-        buttonPanel.setLayout(new BorderLayout());  // 버튼을 양쪽 및 가운데로 배치
+        buttonPanel.setLayout(new BorderLayout()); // 버튼을 양쪽 및 가운데로 배치
         resetButton = new JButton("초기화");
         addButton = new JButton("새 직원 추가");
         deleteButton = new JButton("선택된 직원 삭제");
-        conditionDeleteButton = new JButton("조건에 맞는 직원 삭제");  // 조건 삭제 버튼 추가
+        conditionDeleteButton = new JButton("조건에 맞는 직원 삭제"); // 조건 삭제 버튼 추가
         editButton = new JButton("직원 수정");
 
-        JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));  // 왼쪽 정렬
+        JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT)); // 왼쪽 정렬
         leftPanel.add(resetButton);
         buttonPanel.add(leftPanel, BorderLayout.WEST);
 
-        JPanel centerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));  // 가운데 정렬
+        JPanel centerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER)); // 가운데 정렬
         centerPanel.add(addButton);
         centerPanel.add(editButton);
         buttonPanel.add(centerPanel, BorderLayout.CENTER);
 
-        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));  // 오른쪽 정렬
+        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT)); // 오른쪽 정렬
         rightPanel.add(deleteButton);
-        rightPanel.add(conditionDeleteButton);  // 조건 삭제 버튼 추가
+        rightPanel.add(conditionDeleteButton); // 조건 삭제 버튼 추가
         buttonPanel.add(rightPanel, BorderLayout.EAST);
 
         add(buttonPanel, BorderLayout.SOUTH);
@@ -155,8 +153,7 @@ public class EmployeeUI extends JFrame {
                         this,
                         "선택한 직원을 삭제하시겠습니까?",
                         "직원 삭제 확인",
-                        JOptionPane.YES_NO_OPTION
-                );
+                        JOptionPane.YES_NO_OPTION);
 
                 // '예'를 선택한 경우에만 삭제 진행
                 if (confirmation == JOptionPane.YES_OPTION) {
@@ -209,7 +206,6 @@ public class EmployeeUI extends JFrame {
             loadEmployeeData(); // 데이터 재로드
         });
 
-
         // 직원 수정 버튼 클릭 시 대화상자 표시
         editButton.addActionListener(new ActionListener() {
             @Override
@@ -232,12 +228,13 @@ public class EmployeeUI extends JFrame {
 
                 // SSN에 해당하는 직원이 없는 경우
                 if (targetRow == -1) {
-                    JOptionPane.showMessageDialog(EmployeeUI.this, "해당 SSN을 가진 직원을 찾을 수 없습니다.", "오류", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(EmployeeUI.this, "해당 SSN을 가진 직원을 찾을 수 없습니다.", "오류",
+                            JOptionPane.ERROR_MESSAGE);
                     return;
                 }
 
                 // 수정할 항목 선택
-                String[] fields = {"Address", "Salary", "Super_Ssn", "Dno"};
+                String[] fields = { "Address", "Salary", "Super_Ssn", "Dno" };
                 String selectedField = (String) JOptionPane.showInputDialog(
                         EmployeeUI.this,
                         "수정할 항목을 선택하세요:",
@@ -245,8 +242,7 @@ public class EmployeeUI extends JFrame {
                         JOptionPane.QUESTION_MESSAGE,
                         null,
                         fields,
-                        fields[0]
-                );
+                        fields[0]);
 
                 if (selectedField != null) {
                     // 새 값 입력
@@ -274,7 +270,8 @@ public class EmployeeUI extends JFrame {
 
                         }
                     } else {
-                        JOptionPane.showMessageDialog(EmployeeUI.this, "새 값을 입력하지 않았습니다.", "오류", JOptionPane.ERROR_MESSAGE);
+                        JOptionPane.showMessageDialog(EmployeeUI.this, "새 값을 입력하지 않았습니다.", "오류",
+                                JOptionPane.ERROR_MESSAGE);
                     }
                 }
             }
@@ -285,33 +282,85 @@ public class EmployeeUI extends JFrame {
 
         // 검색 버튼 클릭 이벤트
         searchButton.addActionListener(e -> {
-            String column = searchColumnComboBox.getSelectedItem().toString(); // 검색할 열
-            String value = searchField.getText(); // 검색할 값
-            List<Employee> employees = EmployeeSearch.searchEmployees(column, value);
+            List<List<String>> conditions = new ArrayList<>();
+            for (Component component : searchListPanel.getComponents()) {
+                if (component instanceof JPanel) {
+                    JPanel searchPanel = (JPanel) component;
+                    JComboBox<String> searchColumnComboBox = (JComboBox<String>) searchPanel.getComponent(0);
+                    JTextField searchField = (JTextField) searchPanel.getComponent(1);
+
+                    String searchColumn = searchColumnComboBox.getSelectedItem().toString();
+                    String searchValue = searchField.getText();
+
+                    if (!searchValue.isEmpty()) {
+                        List<String> condition = new ArrayList<>();
+                        condition.add(searchColumn);
+                        condition.add(searchValue);
+                        conditions.add(condition);
+                    }
+                }
+            }
+            List<Employee> employees = EmployeeSearch.searchEmployees(conditions);
+
             tableModel.setRowCount(0); // 테이블 초기화
             for (Employee employee : employees) {
                 List<Object> rowData = new ArrayList<>();
 
-                if (fnameCheckBox.isSelected()) rowData.add(employee.getFirstName());
-                if (minitCheckBox.isSelected()) rowData.add(employee.getMiddleInitial());
-                if (lnameCheckBox.isSelected()) rowData.add(employee.getLastName());
-                if (ssnCheckBox.isSelected()) rowData.add(employee.getSsn());
-                if (bdateCheckBox.isSelected()) rowData.add(employee.getBirthDate());
-                if (addressCheckBox.isSelected()) rowData.add(employee.getAddress());
-                if (sexCheckBox.isSelected()) rowData.add(employee.getSex());
-                if (salaryCheckBox.isSelected()) rowData.add(employee.getSalary());
-                if (superSsnCheckBox.isSelected()) rowData.add(employee.getSupervisorSsn());
-                if (dnoCheckBox.isSelected()) rowData.add(employee.getDepartmentName()); // 부서 이름 출력
+                if (fnameCheckBox.isSelected())
+                    rowData.add(employee.getFirstName());
+                if (minitCheckBox.isSelected())
+                    rowData.add(employee.getMiddleInitial());
+                if (lnameCheckBox.isSelected())
+                    rowData.add(employee.getLastName());
+                if (ssnCheckBox.isSelected())
+                    rowData.add(employee.getSsn());
+                if (bdateCheckBox.isSelected())
+                    rowData.add(employee.getBirthDate());
+                if (addressCheckBox.isSelected())
+                    rowData.add(employee.getAddress());
+                if (sexCheckBox.isSelected())
+                    rowData.add(employee.getSex());
+                if (salaryCheckBox.isSelected())
+                    rowData.add(employee.getSalary());
+                if (superSsnCheckBox.isSelected())
+                    rowData.add(employee.getSupervisorSsn());
+                if (dnoCheckBox.isSelected())
+                    rowData.add(employee.getDepartmentName()); // 부서 이름 출력
 
                 tableModel.addRow(rowData.toArray());
             }
+        });
+
+        // 조건 추가 버튼 클릭 이벤트
+        addQueryButton.addActionListener(e -> {
+            JTextField searchField = new JTextField(15);
+            JButton removeButton = new JButton("삭제");
+            JComboBox<String> searchColumnComboBox = new JComboBox<>(new String[] {
+                    "Fname", "Minit", "Lname", "Ssn", "Bdate", "Address", "Sex", "Salary", "Super_ssn",
+                    "Department Name"
+            });
+
+            JPanel searchPanel = new JPanel();
+            searchPanel.add(searchColumnComboBox);
+            searchPanel.add(searchField);
+            searchPanel.add(removeButton);
+
+            searchListPanel.add(searchPanel);
+            searchListPanel.revalidate();
+            searchListPanel.repaint();
+
+            removeButton.addActionListener(e1 -> {
+                searchListPanel.remove(searchPanel);
+                searchListPanel.revalidate();
+                searchListPanel.repaint();
+            });
         });
 
         // 직원 정보 로드
         loadEmployeeData();
 
         // UI 표시
-        setVisible(true);  // JFrame을 화면에 표시
+        setVisible(true); // JFrame을 화면에 표시
     }
 
     // 그룹별 평균 급여
@@ -333,41 +382,60 @@ public class EmployeeUI extends JFrame {
 
         // 표시할 컬럼 목록 동적 업데이트
         List<String> visibleColumns = new ArrayList<>();
-        if (fnameCheckBox.isSelected()) visibleColumns.add("First Name");
-        if (minitCheckBox.isSelected()) visibleColumns.add("Middle Initial");
-        if (lnameCheckBox.isSelected()) visibleColumns.add("Last Name");
-        if (ssnCheckBox.isSelected()) visibleColumns.add("SSN");
-        if (bdateCheckBox.isSelected()) visibleColumns.add("Birth Date");
-        if (addressCheckBox.isSelected()) visibleColumns.add("Address");
-        if (sexCheckBox.isSelected()) visibleColumns.add("Sex");
-        if (salaryCheckBox.isSelected()) visibleColumns.add("Salary");
-        if (superSsnCheckBox.isSelected()) visibleColumns.add("Supervisor SSN");
-        if (dnoCheckBox.isSelected()) visibleColumns.add("Department Name");
+        if (fnameCheckBox.isSelected())
+            visibleColumns.add("First Name");
+        if (minitCheckBox.isSelected())
+            visibleColumns.add("Middle Initial");
+        if (lnameCheckBox.isSelected())
+            visibleColumns.add("Last Name");
+        if (ssnCheckBox.isSelected())
+            visibleColumns.add("SSN");
+        if (bdateCheckBox.isSelected())
+            visibleColumns.add("Birth Date");
+        if (addressCheckBox.isSelected())
+            visibleColumns.add("Address");
+        if (sexCheckBox.isSelected())
+            visibleColumns.add("Sex");
+        if (salaryCheckBox.isSelected())
+            visibleColumns.add("Salary");
+        if (superSsnCheckBox.isSelected())
+            visibleColumns.add("Supervisor SSN");
+        if (dnoCheckBox.isSelected())
+            visibleColumns.add("Department Name");
 
         // 테이블 모델의 컬럼 업데이트
         tableModel.setColumnIdentifiers(visibleColumns.toArray());
 
-        tableModel.setRowCount(0);  // 테이블 초기화
+        tableModel.setRowCount(0); // 테이블 초기화
 
         // 데이터 로드
         for (Employee employee : employees) {
             List<Object> rowData = new ArrayList<>();
 
-            if (fnameCheckBox.isSelected()) rowData.add(employee.getFirstName());
-            if (minitCheckBox.isSelected()) rowData.add(employee.getMiddleInitial());
-            if (lnameCheckBox.isSelected()) rowData.add(employee.getLastName());
-            if (ssnCheckBox.isSelected()) rowData.add(employee.getSsn());
-            if (bdateCheckBox.isSelected()) rowData.add(employee.getBirthDate());
-            if (addressCheckBox.isSelected()) rowData.add(employee.getAddress());
-            if (sexCheckBox.isSelected()) rowData.add(employee.getSex());
-            if (salaryCheckBox.isSelected()) rowData.add(employee.getSalary());
-            if (superSsnCheckBox.isSelected()) rowData.add(employee.getSupervisorSsn());
-            if (dnoCheckBox.isSelected()) rowData.add(employee.getDepartmentName());
+            if (fnameCheckBox.isSelected())
+                rowData.add(employee.getFirstName());
+            if (minitCheckBox.isSelected())
+                rowData.add(employee.getMiddleInitial());
+            if (lnameCheckBox.isSelected())
+                rowData.add(employee.getLastName());
+            if (ssnCheckBox.isSelected())
+                rowData.add(employee.getSsn());
+            if (bdateCheckBox.isSelected())
+                rowData.add(employee.getBirthDate());
+            if (addressCheckBox.isSelected())
+                rowData.add(employee.getAddress());
+            if (sexCheckBox.isSelected())
+                rowData.add(employee.getSex());
+            if (salaryCheckBox.isSelected())
+                rowData.add(employee.getSalary());
+            if (superSsnCheckBox.isSelected())
+                rowData.add(employee.getSupervisorSsn());
+            if (dnoCheckBox.isSelected())
+                rowData.add(employee.getDepartmentName());
 
             tableModel.addRow(rowData.toArray());
         }
     }
-
 
     // 직원 추가 창을 여는 메서드
     private void openAddEmployeeDialog() {
@@ -375,7 +443,7 @@ public class EmployeeUI extends JFrame {
         dialog.setSize(400, 600);
         dialog.setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);  // 패딩 추가
+        gbc.insets = new Insets(5, 5, 5, 5); // 패딩 추가
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
         // 왼쪽 라벨들
@@ -455,25 +523,25 @@ public class EmployeeUI extends JFrame {
         // 추가 버튼을 아래 중앙에 배치
         gbc.gridx = 0;
         gbc.gridy++;
-        gbc.gridwidth = 2;  // 버튼이 전체 너비를 차지하게 설정
-        gbc.anchor = GridBagConstraints.CENTER;  // 중앙 정렬
+        gbc.gridwidth = 2; // 버튼이 전체 너비를 차지하게 설정
+        gbc.anchor = GridBagConstraints.CENTER; // 중앙 정렬
         JButton addEmployeeButton = new JButton("추가");
         dialog.add(addEmployeeButton, gbc);
 
         /*
-        // 입력 필드에 예시값 설정
-        fnameField.setText("Yang");
-        minitField.setText("J");
-        lnameField.setText("Hoon");
-        ssnField.setText("123456789");
-        bdateField.setText("2003-05-17");
-        addressField.setText("서울");
-        sexField.setText("M");
-        salaryField.setText("100.0");
-        superSsnField.setText("");
-        dnoField.setText("1");
-
-        */
+         * // 입력 필드에 예시값 설정
+         * fnameField.setText("Yang");
+         * minitField.setText("J");
+         * lnameField.setText("Hoon");
+         * ssnField.setText("123456789");
+         * bdateField.setText("2003-05-17");
+         * addressField.setText("서울");
+         * sexField.setText("M");
+         * salaryField.setText("100.0");
+         * superSsnField.setText("");
+         * dnoField.setText("1");
+         * 
+         */
 
         // 버튼 클릭 이벤트 처리
         addEmployeeButton.addActionListener(e -> {
@@ -489,7 +557,8 @@ public class EmployeeUI extends JFrame {
             String dno = dnoField.getText();
 
             // Employee 객체 생성 및 데이터베이스에 추가
-            Employee newEmployee = new Employee(fname, minit, lname, ssn, bdate, address, sex, Double.parseDouble(salary), superSsn, Integer.parseInt(dno));
+            Employee newEmployee = new Employee(fname, minit, lname, ssn, bdate, address, sex,
+                    Double.parseDouble(salary), superSsn, Integer.parseInt(dno));
             boolean addResult = EmployeeSearch.addEmployee(newEmployee);
 
             // 추가된 직원 정보를 메인 테이블에 반영
