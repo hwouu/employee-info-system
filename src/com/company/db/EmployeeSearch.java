@@ -152,6 +152,37 @@ public class EmployeeSearch {
         return averageSalaries;
     }
 
+    // 그룹별 직원 수
+    public static Map<String, Integer> getEmployeeCountByGroup(String groupByColumn) {
+        Map<String, Integer> employeeCounts = new HashMap<>();
+        String query = null;
+
+        if (groupByColumn.equals("Dname")) {
+            query = "SELECT d." + groupByColumn + ", COUNT(*) AS employee_count "
+                    + "FROM EMPLOYEE e "
+                    + "JOIN DEPARTMENT d ON e.Dno = d.Dnumber "
+                    + "GROUP BY d.Dname";
+        } else {
+            query = "SELECT " + groupByColumn + ", COUNT(*) AS employee_count FROM EMPLOYEE GROUP BY " + groupByColumn;
+        }
+
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(query)) {
+
+            ResultSet resultSet = pstmt.executeQuery();
+
+            while (resultSet.next()) {
+                String group = resultSet.getString(groupByColumn);
+                int employeeCount = resultSet.getInt("employee_count");
+                employeeCounts.put(group, employeeCount);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return employeeCounts;
+    }
+
 
     // 데이터를 조회하여 조건에 맞는 직원 정보를 반환하는 함수
     public static String getEmployeeDataByConditions(String conditionsInput) {
@@ -230,6 +261,7 @@ public class EmployeeSearch {
         return null;
     }
 
+    // 조건에 맞는 직원 삭제
     public static int deleteEmployeeByConditions(String conditionsInput) {
         if (conditionsInput == null || conditionsInput.trim().isEmpty()) {
             return -1; // 조건이 없는 경우

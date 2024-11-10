@@ -17,7 +17,7 @@ public class EmployeeUI extends JFrame {
     private DefaultTableModel tableModel;
     private JTextField searchField;
     private JComboBox<String> searchColumnComboBox, groupSalaryComboBox;
-    private JButton searchButton, resetButton, deleteButton, conditionDeleteButton, addButton, editButton, groupSalaryButton;
+    private JButton searchButton, resetButton, deleteButton, conditionDeleteButton, addButton, editButton, groupSalaryButton, groupNumButton;
 
     // 체크박스들
     private JCheckBox fnameCheckBox, minitCheckBox, lnameCheckBox, ssnCheckBox, bdateCheckBox,
@@ -90,6 +90,8 @@ public class EmployeeUI extends JFrame {
         groupSalaryButton = new JButton("평균 급여 검색");
         searchField = new JTextField(10);
         searchButton = new JButton("검색");
+        groupNumButton = new JButton("그룹별 직원 수 검색");
+
         searchPanel.add(new JLabel("검색 범위"));
         searchPanel.add(searchColumnComboBox);
         searchPanel.add(new JLabel("검색 내용"));
@@ -98,6 +100,7 @@ public class EmployeeUI extends JFrame {
         searchPanel.add(new JLabel("그룹별 평균 급여"));
         searchPanel.add(groupSalaryComboBox);
         searchPanel.add(groupSalaryButton);
+        searchPanel.add(groupNumButton);
 
 
 
@@ -182,6 +185,7 @@ public class EmployeeUI extends JFrame {
         resetButton.addActionListener(e -> loadEmployeeData());
 
         groupSalaryButton.addActionListener(e -> showAverageSalaryDialog());
+        groupNumButton.addActionListener(e -> showGroupNumber());
 
         // 직원 삭제 버튼 이벤트
         deleteButton.addActionListener(e -> {
@@ -365,6 +369,19 @@ public class EmployeeUI extends JFrame {
         }
 
         JOptionPane.showMessageDialog(this, resultText.toString(), "그룹별 평균 급여", JOptionPane.INFORMATION_MESSAGE);
+    }
+    // 그룹별 직원수
+    private void showGroupNumber() {
+        String group = groupSalaryComboBox.getSelectedItem().toString();
+        Map<String, Integer> avgNumber = EmployeeSearch.getEmployeeCountByGroup(group);
+
+        StringBuilder resultText = new StringBuilder();
+        for (Map.Entry<String, Integer> entry : avgNumber.entrySet()) {
+            resultText.append(entry.getKey()).append(" : ")
+                    .append(String.format("%d", entry.getValue())).append("\n");
+        }
+
+        JOptionPane.showMessageDialog(this, resultText.toString(), "그룹별 직원 수", JOptionPane.INFORMATION_MESSAGE);
     }
 
     private void loadEmployeeData() {
