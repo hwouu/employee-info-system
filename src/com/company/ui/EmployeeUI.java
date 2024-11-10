@@ -528,21 +528,6 @@ public class EmployeeUI extends JFrame {
         JButton addEmployeeButton = new JButton("추가");
         dialog.add(addEmployeeButton, gbc);
 
-        /*
-         * // 입력 필드에 예시값 설정
-         * fnameField.setText("Yang");
-         * minitField.setText("J");
-         * lnameField.setText("Hoon");
-         * ssnField.setText("123456789");
-         * bdateField.setText("2003-05-17");
-         * addressField.setText("서울");
-         * sexField.setText("M");
-         * salaryField.setText("100.0");
-         * superSsnField.setText("");
-         * dnoField.setText("1");
-         * 
-         */
-
         // 버튼 클릭 이벤트 처리
         addEmployeeButton.addActionListener(e -> {
             String fname = fnameField.getText();

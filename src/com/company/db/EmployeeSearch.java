@@ -347,8 +347,6 @@ public class EmployeeSearch {
     }
 
     // 직원 추가
-    // EmployeeSearch.java 파일의 addEmployee 메서드에서
-
     public static boolean addEmployee(Employee employee) {
         String query = "INSERT INTO EMPLOYEE (Fname, Minit, Lname, Ssn, Bdate, Address, Sex, Salary, Super_ssn, Dno) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
