@@ -18,7 +18,7 @@ public class EmployeeUI extends JFrame {
     private List<JTextField> searchField;
     private JComboBox groupSalaryComboBox;
     private JButton searchButton, resetButton, deleteButton, conditionDeleteButton, addButton, editButton,
-            groupSalaryButton;
+            groupSalaryButton, groupNumButton;
     // 체크박스들
     private JCheckBox fnameCheckBox, minitCheckBox, lnameCheckBox, ssnCheckBox, bdateCheckBox,
             addressCheckBox, sexCheckBox, salaryCheckBox, superSsnCheckBox, dnoCheckBox;
@@ -50,9 +50,6 @@ public class EmployeeUI extends JFrame {
             }
         };
 
-        String[] columnNames = { "First Name", "Middle Initial", "Last Name", "SSN", "Birth Date", "Address", "Sex",
-                "Salary", "Supervisor SSN", "Department Name" };
-        tableModel = new DefaultTableModel(columnNames, 0);
         employeeTable = new JTable(tableModel);
 
 
@@ -98,8 +95,10 @@ public class EmployeeUI extends JFrame {
         });
         groupSalaryButton = new JButton("평균 급여 검색");
         groupSalaryPanel.add(new JLabel("그룹별 평균 급여"));
+        groupNumButton = new JButton("그룹별 직원 수 검색");
         groupSalaryPanel.add(groupSalaryComboBox);
         groupSalaryPanel.add(groupSalaryButton);
+        groupSalaryPanel.add(groupNumButton);
 
         add(groupSalaryPanel, BorderLayout.NORTH);
 
