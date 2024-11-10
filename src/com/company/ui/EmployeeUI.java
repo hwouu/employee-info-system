@@ -35,15 +35,24 @@ public class EmployeeUI extends JFrame {
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public Class<?> getColumnClass(int columnIndex) {
-                if (columnIndex == 7) { // Salary 컬럼
+                // 현재 컬럼의 이름을 가져옴
+                String columnName = getColumnName(columnIndex);
+                // Salary 컬럼인 경우에만 Double 반환
+                if (columnName.equals("Salary")) {
                     return Double.class;
                 }
                 return String.class;
             }
+
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; // 모든 셀을 편집 불가능하게 설정
+            }
         };
+
         employeeTable = new JTable(tableModel);
 
-        // 여기부터 새로운 코드 추가
+
         employeeTable.setAutoCreateRowSorter(true);
 
         // 각 컬럼의 선호하는 너비 설정
