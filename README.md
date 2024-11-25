@@ -98,11 +98,10 @@ private static final String PASSWORD = "your_password";
 - 체크박스를 통해 컬럼 표시/숨기기 설정.
 - 사용자 선호에 따라 테이블 업데이트.
 
+---
 
 ## 📄 라이선스
 이 프로젝트는 MIT 라이선스를 따릅니다. 자세한 내용은 [LICENSE](LICENSE) 파일을 참조하세요.
-
----
 
 ---
 
