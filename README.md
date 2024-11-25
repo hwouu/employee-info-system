@@ -1,112 +1,92 @@
 # 직원 정보 관리 시스템
 
-**직원 정보 관리 시스템**은 Java와 MySQL을 기반으로 개발된 애플리케이션으로, 직관적인 사용자 인터페이스(UI)를 통해 직원 데이터를 효율적으로 관리할 수 있습니다. 생성, 검색, 수정, 그룹화, 삭제와 같은 다양한 기능을 제공합니다.
+Java와 MySQL 기반으로 개발된 직원 정보 관리 시스템입니다. 직관적인 사용자 인터페이스와 강력한 데이터베이스 연동을 통해 직원 데이터를 효율적으로 관리할 수 있도록 설계되었습니다.
 
----
+## 프로젝트 개요
 
-## 🎯 주요 기능
-- **직원 관리**:
-  - 직원 생성, 수정, 삭제.
-  - 상사-부하 관계 및 부서 할당과 같은 복잡한 관계 처리.
-- **검색 기능**:
-  - 다양한 속성(예: 이름, 성별, 주민등록번호, 부서 이름)으로 검색.
-  - 조건 기반의 고급 검색 지원.
-- **그룹화 및 통계**:
-  - 성별, 부서, 상사 등으로 그룹화하여 평균 급여 및 직원 수 확인.
-- **동적 테이블 업데이트**:
-  - 테이블 컬럼의 표시/숨기기 설정 가능.
-  - 컬럼 헤더를 클릭하여 정렬 기능 제공.
-- **강력한 오류 처리**:
-  - 날짜, 급여, 외래 키 제약 조건 등에 대한 유효성 검사.
-  - 잘못된 작업에 대한 상세 오류 메시지 팝업 제공.
+본 시스템은 Java를 활용한 클라이언트 애플리케이션과 MySQL 데이터베이스를 연동하여 직원 정보를 관리합니다. 검색, 추가, 수정, 삭제와 같은 기본적인 기능뿐만 아니라, 데이터 통계 및 조건 검색과 같은 고급 기능도 제공합니다.
 
----
+### 주요 기능
 
-## 📁 프로젝트 구조
+- **직원 정보 관리**
+  - 직원 정보 조회
+  - 직원 데이터 추가, 수정, 삭제
+  - 조건에 따른 데이터 검색
 
-### 백엔드
-- **`DatabaseConnection`**:
-  - MySQL 데이터베이스와의 연결을 처리.
-- **`EmployeeSearch`**:
-  - 데이터베이스의 CRUD 작업 수행.
-  - 그룹화, 검색, 고급 필터링 포함.
+- **그룹 및 통계**
+  - 부서별 평균 급여 조회
+  - 성별 및 상사 관계별 직원 수 통계
+  - 특정 조건에 따른 데이터 필터링 및 삭제
 
-### 프론트엔드
-- **`EmployeeUI`**:
-  - 사용자와 상호작용할 수 있는 직관적인 GUI 제공.
-  - 버튼, 드롭다운, 동적 테이블 렌더링 포함.
+- **UI 및 사용성**
+  - 체크박스를 통한 데이터 컬럼 선택
+  - 컬럼 정렬 및 조건 기반 검색 기능
 
----
+## 기술 스택
 
-## ⚙️ 사용 기술
-- **프로그래밍 언어**: Java
-- **데이터베이스**: MySQL
-- **UI 프레임워크**: Swing
-- **빌드 도구**: Gradle/Maven (선택사항)
+- **프로그래밍 언어**
+  - Java (Swing을 활용한 UI 구현)
 
----
+- **데이터베이스**
+  - MySQL
 
-## 🚀 시작하기
+- **라이브러리**
+  - MySQL Connector/J
+  - JDBC (Java Database Connectivity)
 
-### 사전 준비
-1. **Java JDK 8 이상**
-2. **MySQL 데이터베이스**
-3. **MySQL Connector/J**: JDBC 드라이버 설치 필요.
-4. **IDE**: IntelliJ IDEA, Eclipse 또는 선호하는 Java IDE.
+## 시작하기
 
-### 설치 방법
-1. **레포지토리 클론**:
+### 필수 조건
+- JDK 17 이상
+- MySQL Server (8.0 이상)
+- MySQL Connector/J 설치
+
+### 설치 및 실행
+
+1. 저장소를 클론합니다.
    ```bash
-   git clone https://github.com/<username>/<repository>.git
-   cd <repository>
+   git clone https://github.com/hwouu/employee-info-system.git
+   cd employee-info-system
    ```
-2. **데이터베이스 설정**:
-   - `COMPANY.sql` 스키마를 MySQL 데이터베이스에 가져오기.
-   - `DatabaseConnection.java`에서 연결 정보를 올바르게 구성.
-3. **프로젝트 실행**:
-   - IDE에서 프로젝트 열기.
-   - `Main.java` 파일을 컴파일하고 실행.
 
----
+2. MySQL 데이터베이스 설정:
+   - `COMPANY` 데이터베이스를 생성하고 `EMPLOYEE` 및 `DEPARTMENT` 테이블을 설정합니다.
+   - 제공된 `schema.sql` 파일을 사용하여 테이블을 생성하세요.
 
-## 🛠️ 구성 방법
+3. 프로젝트 실행:
+   - IntelliJ IDEA 또는 Eclipse와 같은 IDE에서 프로젝트를 열고 `Main` 클래스를 실행합니다.
 
 ### 데이터베이스 연결 설정
-`DatabaseConnection.java`에서 다음 내용을 수정:
+
+`DatabaseConnection.java` 파일의 URL, 사용자 이름, 비밀번호를 수정하여 데이터베이스와 연결합니다.
+
 ```java
 private static final String URL = "jdbc:mysql://localhost:3306/COMPANY";
 private static final String USER = "your_username";
 private static final String PASSWORD = "your_password";
 ```
 
----
+## 프로젝트 구조
 
-## 📊 세부 기능
-
-### 직원 CRUD 작업
-- 직원 추가:
-  - 필드: 이름, 성, 주민등록번호, 급여, 상사, 부서 등.
-- 특정 필드 동적 수정.
-- 외래 키 제약 조건 확인 및 삭제.
-
-### 고급 검색
-- 다양한 속성으로 검색:
-  - 예: `Department Name`, `Salary > 50000`, `Gender = M`.
-- 그룹화된 검색을 통해 통계 제공.
-
-### 동적 테이블 커스터마이징
-- 체크박스를 통해 컬럼 표시/숨기기 설정.
-- 사용자 선호에 따라 테이블 업데이트.
-
----
-
-## 📄 라이선스
-이 프로젝트는 MIT 라이선스를 따릅니다. 자세한 내용은 [LICENSE](LICENSE) 파일을 참조하세요.
-
----
-
-## 📬 연락처
-질문이나 피드백이 있으시면 [nhw3990@gmail.kr](mailto:nhw3990@gmail.com)으로 연락주세요.
+```
+src/
+├── com.company.db/       # 데이터베이스 연동 로직
+├── com.company.model/    # 데이터 모델 정의
+├── com.company.ui/       # 사용자 인터페이스
+└── com.company.Main      # 프로그램 진입점
 ```
 
-원하시는 대로 수정하실 수 있습니다! 😊
+## 기여하기
+
+1. 프로젝트를 Fork합니다.
+2. 새 기능 브랜치를 생성합니다. (`git checkout -b feature/AmazingFeature`)
+3. 변경 사항을 Commit합니다. (`git commit -m 'feat: Add some AmazingFeature'`)
+4. 브랜치에 Push합니다. (`git push origin feature/AmazingFeature`)
+5. Pull Request를 생성합니다.
+
+## 라이선스
+
+이 프로젝트는 MIT 라이선스에 따라 배포됩니다. 자세한 내용은 [LICENSE](LICENSE) 파일을 참조하세요.
+```
+
+이 내용을 기반으로 저장소와 README.md 파일을 업데이트하세요. 추가적인 요청사항이 있다면 알려주세요!
